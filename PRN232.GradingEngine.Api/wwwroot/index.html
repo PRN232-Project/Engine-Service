@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grading Engine Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --indigo: #6366f1;
+            --violet: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* App Container */
+        .app-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--primary-gradient);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 450px 1fr;
+            }
+        }
+
+        /* Glassmorphism Card Wrapper */
+        .glass-card {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.05);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ffffff;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.825rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        select, input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--indigo);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' class='w-6 h-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--primary-gradient);
+            border: none;
+            color: #ffffff;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            font-size: 0.975rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+            opacity: 0.95;
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Results / Dashboard Columns */
+        .report-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-height: 400px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            flex-grow: 1;
+            padding: 3rem;
+            border: 2px dashed rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Dashboard Overview Grid */
+        .dashboard-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .overview-tile {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tile-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+            line-height: 1.2;
+        }
+
+        .tile-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            width: fit-content;
+            margin-top: 0.5rem;
+        }
+
+        .status-badge.passed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--emerald);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge.failed {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--rose);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        /* Detail lists */
+        .detail-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .detail-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.875rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-body {
+            padding: 1.25rem;
+        }
+
+        .violation-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .violation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .violation-icon {
+            flex-shrink: 0;
+            margin-top: 0.2rem;
+            width: 0.875rem;
+            height: 0.875rem;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .violation-icon.danger {
+            background: var(--rose);
+            box-shadow: 0 0 8px var(--rose);
+        }
+
+        .violation-text {
+            color: #d1d5db;
+        }
+
+        .success-message {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--emerald);
+            font-size: 0.925rem;
+        }
+
+        .success-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            background: var(--emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--emerald);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Raw response accordion */
+        .accordion-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .accordion-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
+        .accordion-content {
+            display: none;
+            margin-top: 0.5rem;
+            background: #040711;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            color: #818cf8;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-section">
+                <div class="logo-icon">G</div>
+                <h1>Grading Engine Control Center</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/swagger" target="_blank" class="btn-secondary">API Swagger Documentation</a>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Side: Configuration Controls -->
+            <div class="glass-card">
+                <div class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--indigo);"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>Lựa Chọn Bài Làm</span>
+                </div>
+
+                <form id="gradingForm">
+                    <div class="form-group">
+                        <label for="sampleSelector">Bài nộp mẫu (Samples)</label>
+                        <div class="select-wrapper">
+                            <select id="sampleSelector">
+                                <option value="">-- Quét & Chọn Bài Nộp Mẫu --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin: 1.5rem 0; border-top: 1px solid var(--border-color);"></div>
+
+                    <div class="form-group">
+                        <label for="workspacePath">Đường dẫn Workspace</label>
+                        <input type="text" id="workspacePath" required placeholder="F:\PRN_Folder\PRN232\Team_Project\All Engine\Engine_Service\sample-student-submission\id">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="submissionId">Submission ID (GUID)</label>
+                        <input type="text" id="submissionId" required placeholder="d48590cb-2292-4d7a-8f1d-8cb5d5a712e3">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentId">Mã Học Sinh</label>
+                        <input type="text" id="studentId" required placeholder="SE182004">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="examId">Exam ID (GUID)</label>
+                        <input type="text" id="examId" required placeholder="a85590cb-2292-4d7a-8f1d-8cb5d5a712e0">
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <div class="spinner" id="btnSpinner"></div>
+                        <span id="btnText">Tiến Hành Chấm Điểm (Grade)</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Side: Live Dashboard Report -->
+            <div class="glass-card" style="display: flex; flex-direction: column;">
+                <div class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--violet);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Báo Cáo Kết Quả Chi Tiết</span>
+                </div>
+
+                <div class="report-section" id="reportSection">
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-icon">📊</div>
+                        <h3>Chưa có dữ liệu báo cáo</h3>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem;">Chọn bài nộp và click "Tiến Hành Chấm Điểm" để xem kết quả đánh giá chi tiết.</p>
+                    </div>
+
+                    <div id="resultsDashboard" style="display: none; flex-direction: column; gap: 1.5rem; flex-grow: 1;">
+                        <!-- Overview Cards -->
+                        <div class="dashboard-header">
+                            <div class="overview-tile">
+                                <span class="tile-title">Tổng Điểm Chấm</span>
+                                <span class="tile-value" id="resScore">0.0</span>
+                            </div>
+                            <div class="overview-tile">
+                                <span class="tile-title">Trạng thái Band 0</span>
+                                <span class="status-badge" id="resStatus">Chưa rõ</span>
+                            </div>
+                            <div class="overview-tile">
+                                <span class="tile-title">Khấu Trừ Naming</span>
+                                <span class="tile-value" id="resDeductions" style="color: var(--rose);">0.0</span>
+                            </div>
+                        </div>
+
+                        <!-- Naming Violations Card -->
+                        <div class="detail-card">
+                            <div class="detail-header">
+                                <span>Lỗi Quy Tắc Đặt Tên (Naming Violations)</span>
+                                <span id="namingCount" style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.1rem 0.5rem; border-radius: 4px;">0</span>
+                            </div>
+                            <div class="detail-body">
+                                <ul class="violation-list" id="namingList">
+                                    <!-- Naming errors injected here -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Build Errors Card -->
+                        <div class="detail-card">
+                            <div class="detail-header">
+                                <span>Lỗi Biên Dịch & Cấu Hình (Build Errors)</span>
+                                <span id="buildCount" style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.1rem 0.5rem; border-radius: 4px;">0</span>
+                            </div>
+                            <div class="detail-body">
+                                <ul class="violation-list" id="buildList">
+                                    <!-- Build errors injected here -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Raw JSON Toggle -->
+                        <div>
+                            <div class="accordion-header" onclick="toggleAccordion()">
+                                <span>Xem Dữ Liệu Raw JSON</span>
+                                <span>▼</span>
+                            </div>
+                            <pre class="accordion-content" id="rawJsonCode"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sampleSelector = document.getElementById('sampleSelector');
+        const gradingForm = document.getElementById('gradingForm');
+        const workspacePathInput = document.getElementById('workspacePath');
+        const submissionIdInput = document.getElementById('submissionId');
+        const studentIdInput = document.getElementById('studentId');
+        const examIdInput = document.getElementById('examId');
+
+        const submitBtn = document.getElementById('submitBtn');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const btnText = document.getElementById('btnText');
+
+        const emptyState = document.getElementById('emptyState');
+        const resultsDashboard = document.getElementById('resultsDashboard');
+
+        // Result outputs
+        const resScore = document.getElementById('resScore');
+        const resStatus = document.getElementById('resStatus');
+        const resDeductions = document.getElementById('resDeductions');
+        const namingCount = document.getElementById('namingCount');
+        const namingList = document.getElementById('namingList');
+        const buildCount = document.getElementById('buildCount');
+        const buildList = document.getElementById('buildList');
+        const rawJsonCode = document.getElementById('rawJsonCode');
+
+        let isAccordionOpen = false;
+        let samplesList = [];
+
+        // Load samples on init
+        async function loadSamples() {
+            try {
+                const response = await fetch('/api/Grading/samples');
+                if (!response.ok) throw new Error("Failed to load sample submissions.");
+                
+                samplesList = await response.json();
+                
+                sampleSelector.innerHTML = '<option value="">-- Quét & Chọn Bài Nộp Mẫu --</option>';
+                samplesList.forEach((sample, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = index;
+                    opt.textContent = sample.displayName;
+                    sampleSelector.appendChild(opt);
+                });
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi khi tải danh sách bài nộp mẫu: " + err.message);
+            }
+        }
+
+        // On select change, auto-append values
+        sampleSelector.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === "") {
+                workspacePathInput.value = "";
+                submissionIdInput.value = "";
+                studentIdInput.value = "";
+                examIdInput.value = "";
+                return;
+            }
+
+            const sample = samplesList[parseInt(val)];
+            workspacePathInput.value = sample.workspacePath;
+            submissionIdInput.value = sample.submissionId === "00000000-0000-0000-0000-000000000000" ? "" : sample.submissionId;
+            studentIdInput.value = sample.studentId === "Không rõ" ? "" : sample.studentId;
+            examIdInput.value = sample.examId === "00000000-0000-0000-0000-000000000000" ? "" : sample.examId;
+        });
+
+        // Submit form
+        gradingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Set loading state
+            submitBtn.disabled = true;
+            btnSpinner.style.display = 'block';
+            btnText.textContent = 'Đang Chấm...';
+            
+            emptyState.style.display = 'none';
+            resultsDashboard.style.display = 'none';
+
+            const payload = {
+                submissionId: submissionIdInput.value.trim() || null,
+                workspacePath: workspacePathInput.value.trim(),
+                studentId: studentIdInput.value.trim(),
+                examId: examIdInput.value.trim()
+            };
+
+            try {
+                const response = await fetch('/api/Grading/check-band0', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(text || `Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                renderReport(data);
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi khi chấm điểm: " + err.message);
+                emptyState.style.display = 'flex';
+            } finally {
+                submitBtn.disabled = false;
+                btnSpinner.style.display = 'none';
+                btnText.textContent = 'Tiến Hành Chấm Điểm (Grade)';
+            }
+        });
+
+        function renderReport(data) {
+            // Show dashboard
+            resultsDashboard.style.display = 'flex';
+
+            // Score and deductions
+            resScore.textContent = (data.finalScore !== undefined) ? data.finalScore.toFixed(1) : "0.0";
+            const deductions = data.scoreDeducted !== undefined ? data.scoreDeducted : (data.scoreDeductions !== undefined ? data.scoreDeductions : 0.0);
+            resDeductions.textContent = `-${deductions.toFixed(1)}`;
+            
+            // Score styling
+            if (data.finalScore >= 5) {
+                resScore.style.color = 'var(--emerald)';
+            } else {
+                resScore.style.color = 'var(--rose)';
+            }
+
+            // Status Badge
+            resStatus.textContent = data.status || "Failed";
+            resStatus.className = 'status-badge ' + (data.band0Passed ? 'passed' : 'failed');
+
+            // Render Naming Violations
+            namingList.innerHTML = '';
+            const namings = data.namingViolations || [];
+            namingCount.textContent = namings.length;
+            if (namings.length === 0) {
+                namingList.innerHTML = `
+                    <div class="success-message">
+                        <div class="success-dot"></div>
+                        <span>Đạt chuẩn! Không phát hiện lỗi quy tắc đặt tên.</span>
+                    </div>
+                `;
+            } else {
+                namings.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'violation-item';
+                    li.innerHTML = `
+                        <span class="violation-icon danger"></span>
+                        <span class="violation-text">${item}</span>
+                    `;
+                    namingList.appendChild(li);
+                });
+            }
+
+            // Render Build Errors
+            buildList.innerHTML = '';
+            const builds = data.buildErrors || [];
+            buildCount.textContent = builds.length;
+            if (builds.length === 0) {
+                buildList.innerHTML = `
+                    <div class="success-message">
+                        <div class="success-dot"></div>
+                        <span>Dự án build thành công và không vi phạm hardcode connection string!</span>
+                    </div>
+                `;
+            } else {
+                builds.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'violation-item';
+                    li.innerHTML = `
+                        <span class="violation-icon danger"></span>
+                        <span class="violation-text" style="font-family: Courier, monospace; font-size: 0.825rem;">${item}</span>
+                    `;
+                    buildList.appendChild(li);
+                });
+            }
+
+            // Raw JSON code
+            rawJsonCode.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function toggleAccordion() {
+            const content = document.getElementById('rawJsonCode');
+            isAccordionOpen = !isAccordionOpen;
+            content.style.display = isAccordionOpen ? 'block' : 'none';
+        }
+
+        // Initialize
+        loadSamples();
+    </script>
+</body>
+</html>

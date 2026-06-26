@@ -24,16 +24,16 @@ public static class DbInitializer
                     Id = Guid.Parse("a85590cb-2292-4d7a-8f1d-8cb5d5a712e0"),
                     ExamCode = "PRN231_SU25",
                     MaxScore = 10.0m,
-                    SolutionPattern = "^PRN231_SU25_SE{StudentID}$",
+                    SolutionPattern = "^PRN231_SU25_{StudentID}$",
                     ForbidHardcodedConnectionString = true,
                     DeductionPointsPerNamingError = 1.0m,
                     RequiredProjects = new List<RequiredProject>
                     {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN231_SU25_SE{StudentID}\\.api$", MustExist = true }
+                        new() { Id = Guid.NewGuid(), Pattern = "^PRN231_SU25_{StudentID}\\.api$", MustExist = true }
                     },
                     RequiredFiles = new List<RequiredFile>
                     {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN231_SU25_SE{StudentID}\\.json$", MustExist = true }
+                        new() { Id = Guid.NewGuid(), Pattern = "^PRN231_SU25_{StudentID}\\.json$", MustExist = true }
                     }
                 },
                 new()
@@ -41,13 +41,13 @@ public static class DbInitializer
                     Id = Guid.Parse("b24590cb-2292-4d7a-8f1d-8cb5d5a712e1"),
                     ExamCode = "PRN230_SU25",
                     MaxScore = 10.0m,
-                    SolutionPattern = "^PRN230_SU25_SE{StudentID}$",
+                    SolutionPattern = "^PRN230_SU25_{StudentID}$",
                     ForbidHardcodedConnectionString = true,
                     DeductionPointsPerNamingError = 0.5m,
                     RequiredProjects = new List<RequiredProject>
                     {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN230_SU25_SE{StudentID}\\.web$", MustExist = true },
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN230_SU25_SE{StudentID}\\.service$", MustExist = false }
+                        new() { Id = Guid.NewGuid(), Pattern = "^PRN230_SU25_{StudentID}\\.web$", MustExist = true },
+                        new() { Id = Guid.NewGuid(), Pattern = "^PRN230_SU25_{StudentID}\\.service$", MustExist = false }
                     },
                     RequiredFiles = new List<RequiredFile>
                     {
@@ -59,12 +59,12 @@ public static class DbInitializer
                     Id = Guid.Parse("c36590cb-2292-4d7a-8f1d-8cb5d5a712e2"),
                     ExamCode = "PRN211_SU25",
                     MaxScore = 10.0m,
-                    SolutionPattern = "^PRN211_SU25_SE{StudentID}$",
+                    SolutionPattern = "^PRN211_SU25_{StudentID}$",
                     ForbidHardcodedConnectionString = false,
                     DeductionPointsPerNamingError = 1.5m,
                     RequiredProjects = new List<RequiredProject>
                     {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN211_SU25_SE{StudentID}\\.winform$", MustExist = true }
+                        new() { Id = Guid.NewGuid(), Pattern = "^PRN211_SU25_{StudentID}\\.winform$", MustExist = true }
                     },
                     RequiredFiles = new List<RequiredFile>()
                 }

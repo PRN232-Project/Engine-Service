@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\PRN232.Domain\PRN232.Domain.csproj" />
+    <ProjectReference Include="..\PRN232.Domain\PRN232.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

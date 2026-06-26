@@ -18,10 +18,20 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 // Seed Database automatically on startup
-using (var scope = app.Services.CreateScope())
+try
 {
-    var context = scope.ServiceProvider.GetRequiredService<GradingDbContext>();
-    await DbInitializer.SeedAsync(context);
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<GradingDbContext>();
+        await DbInitializer.SeedAsync(context);
+    }
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine($"[Warning] Database initialization failed: {ex.Message}");
+    Console.WriteLine("The application will continue to run, but database-dependent features might fail.");
+    Console.ResetColor();
 }
 
 if (app.Environment.IsDevelopment())
@@ -33,10 +43,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Redirect root to Swagger
+app.UseStaticFiles();
+
+// Redirect root to index.html
 app.MapGet("/", async context =>
 {
-    context.Response.Redirect("/swagger");
+    context.Response.Redirect("/index.html");
     await Task.CompletedTask;
 });
 
