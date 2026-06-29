@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PRN232.Domain.Entities;
@@ -9,69 +11,24 @@ namespace PRN232.GradingEngine.Infrastructure.Persistence;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(GradingDbContext context)
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    public static async Task SeedAsync(GradingDbContext context, string rubricSeedFilePath)
     {
         // Tự động chạy migrations nếu DB chưa được cập nhật
         await context.Database.MigrateAsync();
 
-        // 1. Seed ExamRubrics
-        if (!await context.ExamRubrics.AnyAsync())
-        {
-            var rubrics = new List<ExamRubric>
-            {
-                new()
-                {
-                    Id = Guid.Parse("a85590cb-2292-4d7a-8f1d-8cb5d5a712e0"),
-                    ExamCode = "PRN231_SU25",
-                    MaxScore = 10.0m,
-                    SolutionPattern = "^PRN231_SU25_{StudentID}$",
-                    ForbidHardcodedConnectionString = true,
-                    DeductionPointsPerNamingError = 1.0m,
-                    RequiredProjects = new List<RequiredProject>
-                    {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN231_SU25_{StudentID}\\.api$", MustExist = true }
-                    },
-                    RequiredFiles = new List<RequiredFile>
-                    {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN231_SU25_{StudentID}\\.json$", MustExist = true }
-                    }
-                },
-                new()
-                {
-                    Id = Guid.Parse("b24590cb-2292-4d7a-8f1d-8cb5d5a712e1"),
-                    ExamCode = "PRN230_SU25",
-                    MaxScore = 10.0m,
-                    SolutionPattern = "^PRN230_SU25_{StudentID}$",
-                    ForbidHardcodedConnectionString = true,
-                    DeductionPointsPerNamingError = 0.5m,
-                    RequiredProjects = new List<RequiredProject>
-                    {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN230_SU25_{StudentID}\\.web$", MustExist = true },
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN230_SU25_{StudentID}\\.service$", MustExist = false }
-                    },
-                    RequiredFiles = new List<RequiredFile>
-                    {
-                        new() { Id = Guid.NewGuid(), Pattern = "^appsettings\\.json$", MustExist = true }
-                    }
-                },
-                new()
-                {
-                    Id = Guid.Parse("c36590cb-2292-4d7a-8f1d-8cb5d5a712e2"),
-                    ExamCode = "PRN211_SU25",
-                    MaxScore = 10.0m,
-                    SolutionPattern = "^PRN211_SU25_{StudentID}$",
-                    ForbidHardcodedConnectionString = false,
-                    DeductionPointsPerNamingError = 1.5m,
-                    RequiredProjects = new List<RequiredProject>
-                    {
-                        new() { Id = Guid.NewGuid(), Pattern = "^PRN211_SU25_{StudentID}\\.winform$", MustExist = true }
-                    },
-                    RequiredFiles = new List<RequiredFile>()
-                }
-            };
+        // 1. Seed/Upsert rubric từ file JSON để tránh hardcode pattern trong code.
+        await UpsertRubricsFromFileAsync(context, rubricSeedFilePath);
 
-            await context.ExamRubrics.AddRangeAsync(rubrics);
-            await context.SaveChangesAsync();
+        // Lấy 1 rubric để gắn dữ liệu mẫu submissions (nếu có)
+        var sampleExamId = await context.ExamRubrics.Select(x => x.Id).FirstOrDefaultAsync();
+        if (sampleExamId == Guid.Empty)
+        {
+            return;
         }
 
         // 2. Seed Submissions
@@ -83,7 +40,7 @@ public static class DbInitializer
                 {
                     Id = Guid.Parse("d48590cb-2292-4d7a-8f1d-8cb5d5a712e3"),
                     StudentId = "SE182004",
-                    ExamId = Guid.Parse("a85590cb-2292-4d7a-8f1d-8cb5d5a712e0"),
+                    ExamId = sampleExamId,
                     Band0Passed = true,
                     NamingViolations = new List<string>(),
                     BuildErrors = new List<string>(),
@@ -97,7 +54,7 @@ public static class DbInitializer
                 {
                     Id = Guid.Parse("e59590cb-2292-4d7a-8f1d-8cb5d5a712e4"),
                     StudentId = "SE171099",
-                    ExamId = Guid.Parse("a85590cb-2292-4d7a-8f1d-8cb5d5a712e0"),
+                    ExamId = sampleExamId,
                     Band0Passed = false,
                     NamingViolations = new List<string> { "Tên file solution 'WrongName.sln' không đúng cấu trúc bắt buộc." },
                     BuildErrors = new List<string> { "[DATABASE CONFIG ERROR] File DbContext.cs: Phát hiện hardcode Connection String trong hàm gọi 'UseSqlServer'." },
@@ -111,7 +68,7 @@ public static class DbInitializer
                 {
                     Id = Guid.Parse("f60590cb-2292-4d7a-8f1d-8cb5d5a712e5"),
                     StudentId = "SE160555",
-                    ExamId = Guid.Parse("b24590cb-2292-4d7a-8f1d-8cb5d5a712e1"),
+                    ExamId = sampleExamId,
                     Band0Passed = false,
                     NamingViolations = new List<string>(),
                     BuildErrors = new List<string> { "Program.cs(12,30): error CS1002: ; expected" },
@@ -126,5 +83,104 @@ public static class DbInitializer
             await context.Submissions.AddRangeAsync(submissions);
             await context.SaveChangesAsync();
         }
+    }
+
+    private static async Task UpsertRubricsFromFileAsync(GradingDbContext context, string rubricSeedFilePath)
+    {
+        if (string.IsNullOrWhiteSpace(rubricSeedFilePath) || !File.Exists(rubricSeedFilePath))
+        {
+            return;
+        }
+
+        var json = await File.ReadAllTextAsync(rubricSeedFilePath);
+        var payload = JsonSerializer.Deserialize<RubricSeedPayload>(json, JsonOptions);
+        if (payload?.Rubrics is null || payload.Rubrics.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var item in payload.Rubrics)
+        {
+            if (string.IsNullOrWhiteSpace(item.ExamCode))
+            {
+                continue;
+            }
+
+            var examCode = item.ExamCode.Trim();
+            var rubric = await context.ExamRubrics
+                .Include(r => r.RequiredProjects)
+                .Include(r => r.RequiredFiles)
+                .FirstOrDefaultAsync(r => r.ExamCode == examCode);
+
+            if (rubric is null)
+            {
+                rubric = new ExamRubric
+                {
+                    Id = Guid.NewGuid(),
+                    ExamCode = examCode
+                };
+                await context.ExamRubrics.AddAsync(rubric);
+            }
+
+            rubric.MaxScore = item.MaxScore;
+            rubric.SolutionPattern = item.SolutionPattern;
+            rubric.ForbidHardcodedConnectionString = item.ForbidHardcodedConnectionString;
+            rubric.DeductionPointsPerNamingError = item.DeductionPointsPerNamingError;
+
+            context.RequiredProjects.RemoveRange(rubric.RequiredProjects);
+            context.RequiredFiles.RemoveRange(rubric.RequiredFiles);
+
+            rubric.RequiredProjects = (item.RequiredProjects ?? new List<ProjectSeedItem>())
+                .Where(p => !string.IsNullOrWhiteSpace(p.Pattern))
+                .Select(p => new RequiredProject
+                {
+                    Id = Guid.NewGuid(),
+                    ExamRubricId = rubric.Id,
+                    Pattern = p.Pattern,
+                    MustExist = p.MustExist
+                })
+                .ToList();
+
+            rubric.RequiredFiles = (item.RequiredFiles ?? new List<FileSeedItem>())
+                .Where(f => !string.IsNullOrWhiteSpace(f.Pattern))
+                .Select(f => new RequiredFile
+                {
+                    Id = Guid.NewGuid(),
+                    ExamRubricId = rubric.Id,
+                    Pattern = f.Pattern,
+                    MustExist = f.MustExist
+                })
+                .ToList();
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    private sealed class RubricSeedPayload
+    {
+        public List<RubricSeedItem> Rubrics { get; set; } = new();
+    }
+
+    private sealed class RubricSeedItem
+    {
+        public string ExamCode { get; set; } = string.Empty;
+        public decimal MaxScore { get; set; } = 10.0m;
+        public string SolutionPattern { get; set; } = string.Empty;
+        public bool ForbidHardcodedConnectionString { get; set; } = true;
+        public decimal DeductionPointsPerNamingError { get; set; } = 1.0m;
+        public List<ProjectSeedItem> RequiredProjects { get; set; } = new();
+        public List<FileSeedItem> RequiredFiles { get; set; } = new();
+    }
+
+    private sealed class ProjectSeedItem
+    {
+        public string Pattern { get; set; } = string.Empty;
+        public bool MustExist { get; set; } = true;
+    }
+
+    private sealed class FileSeedItem
+    {
+        public string Pattern { get; set; } = string.Empty;
+        public bool MustExist { get; set; } = true;
     }
 }

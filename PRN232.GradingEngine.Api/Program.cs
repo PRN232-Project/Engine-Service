@@ -17,13 +17,15 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+var rubricSeedFilePath = Path.Combine(app.Environment.ContentRootPath, "Data", "rubric-seed.json");
+
 // Seed Database automatically on startup
 try
 {
     using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<GradingDbContext>();
-        await DbInitializer.SeedAsync(context);
+        await DbInitializer.SeedAsync(context, rubricSeedFilePath);
     }
 }
 catch (Exception ex)

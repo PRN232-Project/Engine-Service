@@ -17,7 +17,7 @@ public class MyDbContext : DbContext
              // Code hợp lệ: không làm gì hoặc đọc từ cấu hình.
         }
 
-        // --- CASE B: BÀI LÀM VI PHẠM (Hãy bỏ comment dòng dưới đây để test tính năng phát hiện Hardcode) ---
-        optionsBuilder.UseSqlServer("Host=db.supabase.co;Database=SU25LeopardDB;User Id=postgres;Password=Thinhtran2412;");
+        // --- CASE B: BÀI LÀM VI PHẠM ---
+        // optionsBuilder.UseSqlServer("Host=db.supabase.co;Database=SU25LeopardDB;User Id=postgres;Password=Thinhtran2412;");
     }
 }

@@ -1,0 +1,20 @@
+{
+  "rubrics": [
+    {
+      "examCode": "PRN232_DEFAULT",
+      "maxScore": 10.0,
+      "solutionPattern": "^PRN232_{StudentID}$",
+      "forbidHardcodedConnectionString": true,
+      "deductionPointsPerNamingError": 1.0,
+      "requiredProjects": [
+        { "pattern": "^PRN232_{StudentID}\\.API$", "mustExist": true },
+        { "pattern": "^PRN232_{StudentID}\\.Business$", "mustExist": true },
+        { "pattern": "^PRN232_{StudentID}\\.Service$", "mustExist": true },
+        { "pattern": "^PRN232_{StudentID}\\.Repository$", "mustExist": true }
+      ],
+      "requiredFiles": [
+        { "pattern": "^appsettings(\\.Development)?\\.json$", "mustExist": true }
+      ]
+    }
+  ]
+}

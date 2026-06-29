@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRN232.GradingEngine.Infras
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRN232.GradingEngine.Api", "PRN232.GradingEngine.Api\PRN232.GradingEngine.Api.csproj", "{95D9DF4E-EB9D-4EE5-BE38-B26859E3B9F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRN232.GradingEngine.Tests", "PRN232.GradingEngine.Tests\PRN232.GradingEngine.Tests.csproj", "{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{95D9DF4E-EB9D-4EE5-BE38-B26859E3B9F8}.Release|x64.Build.0 = Release|Any CPU
 		{95D9DF4E-EB9D-4EE5-BE38-B26859E3B9F8}.Release|x86.ActiveCfg = Release|Any CPU
 		{95D9DF4E-EB9D-4EE5-BE38-B26859E3B9F8}.Release|x86.Build.0 = Release|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Debug|x64.Build.0 = Debug|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Debug|x86.Build.0 = Debug|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Release|x64.ActiveCfg = Release|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Release|x64.Build.0 = Release|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Release|x86.ActiveCfg = Release|Any CPU
+		{8B9B253F-4CE4-42AC-BD1E-ACDE4F1D1C72}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

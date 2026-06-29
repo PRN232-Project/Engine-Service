@@ -51,6 +51,17 @@ public class CheckStaticStructureCommandHandler : IRequestHandler<CheckStaticStr
             };
             await _submissionRepository.AddAsync(submission);
         }
+        else
+        {
+            // Re-grade: reset trạng thái cũ để tránh giữ lại lỗi cũ từ lần chấm trước.
+            submission.Band0Passed = false;
+            submission.NamingViolations = new();
+            submission.BuildErrors = new();
+            submission.ScoreDeductions = 0;
+            submission.FinalScore = 0;
+            submission.Status = "Running";
+            submission.GradedAt = null;
+        }
 
         // 2. Lấy Rubric của kỳ thi
         var rubric = await _rubricRepository.GetByIdAsync(request.ExamId);

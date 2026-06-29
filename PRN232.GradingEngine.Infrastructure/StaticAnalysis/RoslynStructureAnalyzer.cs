@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -34,7 +35,7 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
 
         var slnFile = slnFiles[0];
         var slnName = Path.GetFileNameWithoutExtension(slnFile);
-        var solutionPattern = rubric.SolutionPattern.Replace("{StudentID}", studentId);
+        var solutionPattern = ResolveStudentPattern(rubric.SolutionPattern, studentId);
 
         if (!Regex.IsMatch(slnName, solutionPattern))
         {
@@ -47,8 +48,8 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
         // 2. Kiểm tra các Project bắt buộc
         foreach (var reqProj in rubric.RequiredProjects)
         {
-            var targetPattern = reqProj.Pattern.Replace("{StudentID}", studentId);
-            var isMatched = referencedProjects.Any(p => Regex.IsMatch(p.ProjectName, targetPattern));
+            var targetPattern = ResolveStudentPattern(reqProj.Pattern, studentId);
+            var isMatched = referencedProjects.Any(p => IsProjectNameMatched(p.ProjectName, targetPattern));
 
             if (reqProj.MustExist && !isMatched)
             {
@@ -57,7 +58,7 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
             else if (isMatched)
             {
                 // Kiểm tra xem file project (.csproj) và thư mục của nó có tồn tại thật trên đĩa không
-                var matchedProj = referencedProjects.First(p => Regex.IsMatch(p.ProjectName, targetPattern));
+                var matchedProj = referencedProjects.First(p => IsProjectNameMatched(p.ProjectName, targetPattern));
                 var fullPath = Path.GetFullPath(Path.Combine(workspacePath, matchedProj.RelativePath));
                 if (!File.Exists(fullPath))
                 {
@@ -66,13 +67,14 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
             }
         }
 
-        // 3. Kiểm tra các file khác (ví dụ Postman JSON script)
+        // 3. Kiểm tra các file bắt buộc theo rubric (bao gồm appsettings nếu rubric yêu cầu)
         foreach (var reqFile in rubric.RequiredFiles)
         {
-            var targetPattern = reqFile.Pattern.Replace("{StudentID}", studentId);
+            var targetPattern = ResolveStudentPattern(reqFile.Pattern, studentId);
             var allFiles = Directory.GetFiles(workspacePath, "*", SearchOption.AllDirectories)
-                                    .Select(Path.GetFileName)
-                                    .ToList();
+                .Where(f => !IsGeneratedOrBuildArtifact(workspacePath, f))
+                .Select(Path.GetFileName)
+                .ToList();
 
             var fileFound = allFiles.Any(f => f != null && Regex.IsMatch(f, targetPattern));
             if (reqFile.MustExist && !fileFound)
@@ -91,26 +93,43 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
         if (!Directory.Exists(workspacePath))
             return violations;
 
-        // 1. Kiểm tra appsettings.json
+        // 1. F-14: Kiểm tra appsettings.json tồn tại và có key ConnectionStrings hợp lệ
         var appsettingsFiles = Directory.GetFiles(workspacePath, "appsettings.json", SearchOption.AllDirectories);
         if (appsettingsFiles.Length == 0)
         {
-            // Tạm thời chỉ ghi log cảnh báo hoặc vi phạm tùy đề
             violations.Add("Thiếu file cấu hình appsettings.json.");
         }
+        else
+        {
+            foreach (var appsettingsPath in appsettingsFiles)
+            {
+                try
+                {
+                    var json = await File.ReadAllTextAsync(appsettingsPath);
+                    using var doc = JsonDocument.Parse(json);
+                    if (!doc.RootElement.TryGetProperty("ConnectionStrings", out var connectionStringsNode) ||
+                        connectionStringsNode.ValueKind != JsonValueKind.Object ||
+                        !connectionStringsNode.EnumerateObject().Any())
+                    {
+                        violations.Add($"File {Path.GetFileName(appsettingsPath)} thiếu key 'ConnectionStrings' hoặc không có giá trị hợp lệ.");
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    violations.Add($"File {Path.GetFileName(appsettingsPath)} không phải JSON hợp lệ: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    violations.Add($"Không thể đọc file {Path.GetFileName(appsettingsPath)}: {ex.Message}");
+                }
+            }
+        }
 
-        // 2. Quét code C# bằng Roslyn
+        // 2. F-15: Quét Roslyn để phát hiện hardcode connection string trong OnConfiguring
         var csFiles = Directory.GetFiles(workspacePath, "*.cs", SearchOption.AllDirectories);
         foreach (var file in csFiles)
         {
-            // Bỏ qua các file sinh tự động như Migrations hoặc thư mục obj/bin
-            var relativePath = Path.GetRelativePath(workspacePath, file);
-            var segments = relativePath.Split(Path.DirectorySeparatorChar);
-
-            if (segments.Contains("bin") || 
-                segments.Contains("obj") ||
-                file.Contains(".Designer.cs") || 
-                file.Contains("AssemblyInfo.cs"))
+            if (IsGeneratedOrBuildArtifact(workspacePath, file))
             {
                 continue;
             }
@@ -132,6 +151,44 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
         }
 
         return violations;
+    }
+
+    private static bool IsGeneratedOrBuildArtifact(string workspacePath, string filePath)
+    {
+        var relativePath = Path.GetRelativePath(workspacePath, filePath);
+        var segments = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        return segments.Contains("bin", StringComparer.OrdinalIgnoreCase)
+               || segments.Contains("obj", StringComparer.OrdinalIgnoreCase)
+               || segments.Contains("Migrations", StringComparer.OrdinalIgnoreCase)
+               || filePath.EndsWith(".Designer.cs", StringComparison.OrdinalIgnoreCase)
+               || filePath.EndsWith("AssemblyInfo.cs", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ResolveStudentPattern(string patternTemplate, string studentId)
+    {
+        var normalizedStudentId = (studentId ?? string.Empty).Trim();
+        var studentIdWithoutPrefix = normalizedStudentId.StartsWith("SE", StringComparison.OrdinalIgnoreCase)
+            ? normalizedStudentId[2..]
+            : normalizedStudentId;
+
+        // Hỗ trợ dữ liệu rubric cũ từng viết dạng "..._SE{StudentID}".
+        // Nếu studentId đã có tiền tố SE thì tránh tạo lỗi nhân đôi SESE....
+        if (patternTemplate.Contains("_SE{StudentID}", StringComparison.OrdinalIgnoreCase))
+        {
+            return patternTemplate.Replace("{StudentID}", studentIdWithoutPrefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return patternTemplate.Replace("{StudentID}", normalizedStudentId, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsProjectNameMatched(string projectName, string targetPattern)
+    {
+        // Tên project không phân biệt hoa/thường (Windows/dev thực tế thường không strict case)
+        // Nên normalize về lower trước khi match để tránh lỗi âm điểm sai (.API vs .api).
+        var normalizedProjectName = (projectName ?? string.Empty).ToLowerInvariant();
+        var normalizedPattern = (targetPattern ?? string.Empty).ToLowerInvariant();
+        return Regex.IsMatch(normalizedProjectName, normalizedPattern);
     }
 
     private List<SolutionProjectInfo> ParseSolutionProjects(string slnPath)
@@ -173,52 +230,48 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
             _fileName = fileName;
         }
 
-        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            base.VisitInvocationExpression(node);
-
-            var methodName = node.Expression switch
+            if (!string.Equals(node.Identifier.ValueText, "OnConfiguring", StringComparison.Ordinal))
             {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
-                IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
-                _ => null
-            };
+                base.VisitMethodDeclaration(node);
+                return;
+            }
 
-            // Quét các hàm cấu hình kết nối DB
-            if (methodName == "UseSqlServer" || methodName == "UseNpgsql" || methodName == "UseSqlite")
+            foreach (var invocation in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                foreach (var arg in node.ArgumentList.Arguments)
+                var methodName = invocation.Expression switch
                 {
-                    // Nếu tham số truyền vào hàm là 1 string literal (chuỗi cứng)
-                    if (arg.Expression is LiteralExpressionSyntax literal && 
+                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
+                    IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
+                    _ => null
+                };
+
+                if (methodName is not ("UseSqlServer" or "UseNpgsql" or "UseSqlite"))
+                    continue;
+
+                foreach (var arg in invocation.ArgumentList.Arguments)
+                {
+                    if (arg.Expression is LiteralExpressionSyntax literal &&
                         literal.Kind() == SyntaxKind.StringLiteralExpression)
                     {
                         var val = literal.Token.ValueText;
-                        if (!string.IsNullOrWhiteSpace(val) && (val.Contains("Server=") || val.Contains("Host=") || val.Contains("Database=") || val.Contains("DataSource=")))
+                        if (!string.IsNullOrWhiteSpace(val) && IsConnectionStringLike(val))
                         {
                             Violations.Add($"File {_fileName}: Phát hiện hardcode Connection String trong hàm gọi '{methodName}(\"{val}\")'.");
                         }
                     }
                 }
             }
+
+            base.VisitMethodDeclaration(node);
         }
 
-        public override void VisitLiteralExpression(LiteralExpressionSyntax node)
+        private static bool IsConnectionStringLike(string value)
         {
-            base.VisitLiteralExpression(node);
-
-            // Quét thêm các khai báo biến string có chứa cấu trúc của connection string
-            if (node.Kind() == SyntaxKind.StringLiteralExpression)
-            {
-                var val = node.Token.ValueText;
-                if (!string.IsNullOrWhiteSpace(val) && 
-                    val.Length > 20 && 
-                    (val.Contains("Server=") || val.Contains("Host=") || val.Contains("Database=")) && 
-                    (val.Contains("User Id=") || val.Contains("Password=") || val.Contains("pwd=") || val.Contains("uid=")))
-                {
-                    Violations.Add($"File {_fileName}: Phát hiện chuỗi hằng số nghi vấn là Hardcoded Connection String: \"{val}\"");
-                }
-            }
+            var lowered = value.ToLowerInvariant();
+            return (lowered.Contains("server=") || lowered.Contains("host=") || lowered.Contains("database=") || lowered.Contains("datasource="))
+                   && (lowered.Contains("user id=") || lowered.Contains("uid=") || lowered.Contains("password=") || lowered.Contains("pwd="));
         }
     }
 }
