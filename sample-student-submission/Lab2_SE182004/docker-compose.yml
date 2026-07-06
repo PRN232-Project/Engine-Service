@@ -1,0 +1,44 @@
+
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: lab2_lms_db
+    environment:
+      POSTGRES_DB: lmsdb
+      POSTGRES_USER: lmsuser
+      POSTGRES_PASSWORD: 12345
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - lms_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lmsuser -d lmsdb && psql -U lmsuser -d lmsdb -c 'SELECT 1;'"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: PRN232.LMS.API/Dockerfile
+    container_name: lab2_lms_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lmsdb;Username=lmsuser;Password=12345
+      - Jwt__Key=THIS_IS_A_DEVELOPMENT_ONLY_SUPER_SECRET_KEY_1234567890
+    ports:
+      - "8080:8080"
+    networks:
+      - lms_network
+
+volumes:
+  pgdata:
+
+networks:
+  lms_network:

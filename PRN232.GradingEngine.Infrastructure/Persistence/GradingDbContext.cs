@@ -59,6 +59,27 @@ public class GradingDbContext : DbContext
             entity.Property(s => s.BuildErrors)
                 .HasColumnType("text[]")
                 .IsRequired();
+            entity.Property(s => s.TestSectionResults)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                    v => DeserializeTestSectionResults(v)
+                );
         });
+    }
+
+    private static System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult> DeserializeTestSectionResults(string v)
+    {
+        if (string.IsNullOrWhiteSpace(v))
+            return new System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>();
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>>(v, (System.Text.Json.JsonSerializerOptions)null) 
+                ?? new System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>();
+        }
+        catch
+        {
+            return new System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>();
+        }
     }
 }

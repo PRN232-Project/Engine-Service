@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PRN232.Domain.Entities;
@@ -21,6 +22,14 @@ public class ExamRubricRepository : IExamRubricRepository
             .Include(r => r.RequiredProjects)
             .Include(r => r.RequiredFiles)
             .FirstOrDefaultAsync(r => r.Id == id);
+    }
+
+    public async Task<List<ExamRubric>> GetAllAsync()
+    {
+        return await _context.ExamRubrics
+            .Include(r => r.RequiredProjects)
+            .Include(r => r.RequiredFiles)
+            .ToListAsync();
     }
 
     public async Task<ExamRubric?> GetByExamCodeAsync(string examCode)

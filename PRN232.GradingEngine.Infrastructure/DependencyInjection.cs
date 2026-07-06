@@ -84,9 +84,10 @@ public static class DependencyInjection
         services.AddScoped<ISubmissionRepository, SubmissionRepository>();
         services.AddScoped<IExamRubricRepository, ExamRubricRepository>();
 
-        // Analyzers & Builders
+        // Analyzers & Builders & Test Runners
         services.AddScoped<IStaticCodeAnalyzer, RoslynStructureAnalyzer>();
         services.AddScoped<ISolutionBuilder, DotnetSolutionBuilder>();
+        services.AddScoped<ITestRunner, DynamicApiTestRunner>();
 
         return services;
     }

@@ -20,6 +20,9 @@ public class DotnetSolutionBuilder : ISolutionBuilder
             return (false, buildErrors);
         }
 
+        // Dọn dẹp các tiến trình cũ có thể đang giữ khóa tệp hoặc cổng 5000
+        KillPortAndProjectsProcesses(solutionPath);
+
         var directory = Path.GetDirectoryName(solutionPath) ?? "";
 
         var startInfo = new ProcessStartInfo
@@ -82,5 +85,77 @@ public class DotnetSolutionBuilder : ISolutionBuilder
             buildErrors.Add($"Lỗi hệ thống khi gọi dotnet build: {ex.Message}");
             return (false, buildErrors);
         }
+    }
+
+    private void KillPortAndProjectsProcesses(string solutionPath)
+    {
+        // 1. Kill các tiến trình trùng tên với các project .csproj trong thư mục solution
+        try
+        {
+            var solutionDir = Path.GetDirectoryName(solutionPath);
+            if (!string.IsNullOrEmpty(solutionDir) && Directory.Exists(solutionDir))
+            {
+                var csprojFiles = Directory.GetFiles(solutionDir, "*.csproj", SearchOption.AllDirectories);
+                foreach (var csproj in csprojFiles)
+                {
+                    var procName = Path.GetFileNameWithoutExtension(csproj);
+                    if (string.Equals(procName, "dotnet", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    foreach (var proc in Process.GetProcessesByName(procName))
+                    {
+                        try
+                        {
+                            proc.Kill(true);
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+        catch { }
+
+        // 2. Kill bất kỳ tiến trình nào đang lắng nghe cổng 5000 (để giải phóng cổng và tệp tin)
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = "/c netstat -ano | findstr :5000",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var process = Process.Start(startInfo);
+            if (process != null)
+            {
+                var output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                var lines = output.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var line in lines)
+                {
+                    if (line.Contains("LISTENING"))
+                    {
+                        var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length > 0)
+                        {
+                            var pidStr = parts[parts.Length - 1];
+                            if (int.TryParse(pidStr, out int pid))
+                            {
+                                try
+                                {
+                                    var proc = Process.GetProcessById(pid);
+                                    if (proc.Id != Process.GetCurrentProcess().Id)
+                                    {
+                                        proc.Kill(true);
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch { }
     }
 }

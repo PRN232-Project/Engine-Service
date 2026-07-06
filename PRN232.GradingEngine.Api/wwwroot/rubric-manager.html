@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình Rubric Chấm Điểm | Grading Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: rgba(17, 24, 39, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --indigo: #6366f1;
+            --violet: #8b5cf6;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--indigo);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .glass-card {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .field-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-top: -0.25rem;
+        }
+
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        /* Checkbox switch style */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .switch-container input[type="checkbox"] {
+            width: 1.5rem;
+            height: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Dynamic items editor */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 1.25rem;
+            border-radius: 1rem;
+            border: 1px dashed var(--border-color);
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-delete {
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            color: var(--rose);
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-delete:hover {
+            background: var(--rose);
+            color: #ffffff;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            background: var(--emerald);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            transform: translateY(150%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background: var(--rose);
+            box-shadow: 0 10px 25px rgba(244, 63, 94, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div>
+                <h1>Quản lý Rubrics chấm điểm</h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem;">Thiết lập cấu trúc chấm điểm tĩnh và cấu hình quy tắc đặt tên</p>
+            </div>
+            <a href="index.html" class="btn-secondary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Quay lại Dashboard
+            </a>
+        </header>
+
+        <!-- CARD CHỌN RUBRIC HOẶC TẠO MỚI -->
+        <div class="glass-card">
+            <div class="form-group">
+                <label for="rubricSelect">Chọn Đề thi / Rubric</label>
+                <div class="field-desc">Chọn một rubric sẵn có để cập nhật hoặc chọn "Tạo Rubric Mới" để thiết lập cấu hình từ đầu.</div>
+                <select id="rubricSelect" onchange="onRubricSelectChange()">
+                    <option value="NEW">-- Tạo Rubric Mới --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- FORM CHỈNH SỬA RUBRIC -->
+        <div class="glass-card">
+            <div class="card-title">
+                <span id="formTitle">Thiết lập cấu hình Rubric</span>
+                <span id="rubricIdBadge" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 400;"></span>
+            </div>
+
+            <!-- ExamCode & MaxScore -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="examCode">Mã đề thi (Exam Code)</label>
+                    <div class="field-desc">Mã định danh duy nhất của bài thi để Grading Engine nhận diện (ví dụ: <code>PRN231_PE_SU25</code>).</div>
+                    <input type="text" id="examCode" placeholder="Nhập mã đề thi...">
+                </div>
+                <div class="form-group">
+                    <label for="maxScore">Điểm tối đa (Max Score)</label>
+                    <div class="field-desc">Tổng số điểm của phần chấm tĩnh và biên dịch (thông thường là 10.0 hoặc phần trăm theo barem).</div>
+                    <input type="number" id="maxScore" value="10.0" step="0.5" min="0">
+                </div>
+            </div>
+
+            <!-- Solution Pattern -->
+            <div class="form-group">
+                <label for="solutionPattern">Mẫu tệp giải pháp (Solution Pattern)</label>
+                <div class="field-desc">Mẫu biểu thức chính quy hoặc wildcard để tìm tệp giải pháp <code>.sln</code> của học sinh (ví dụ: <code>*.sln</code>).</div>
+                <input type="text" id="solutionPattern" value="*.sln" placeholder="VD: *.sln hoặc PRN231*.sln">
+            </div>
+
+            <!-- Naming rule deduction -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="deductionPoints">Điểm trừ mỗi lỗi đặt tên sai (Deduction Points)</label>
+                    <div class="field-desc">Số điểm sẽ bị trừ cho mỗi dự án hoặc thư mục đặt tên sai so với mẫu cấu trúc yêu cầu.</div>
+                    <input type="number" id="deductionPoints" value="1.0" step="0.1" min="0">
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <div class="switch-container">
+                        <input type="checkbox" id="forbidConnectionString" checked>
+                        <div style="display: flex; flex-direction: column;">
+                            <label for="forbidConnectionString" style="margin-bottom: 0; cursor: pointer;">Cấm Hardcode Connection String</label>
+                            <span class="field-desc" style="margin-top: 0.15rem;">Tự động quét mã nguồn và trừ sạch điểm nếu phát hiện chuỗi kết nối nhạy cảm.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Required Projects Section -->
+            <div class="form-group">
+                <label>Dự án bắt buộc / Quy tắc đặt tên dự án (Required Projects)</label>
+                <div class="field-desc" style="margin-bottom: 0.5rem;">Định nghĩa các mẫu dự án C# bắt buộc hoặc tùy chọn phải xuất hiện trong giải pháp. Sử dụng ký tự đại diện (VD: <code>*.API</code>).</div>
+                <div class="items-list" id="projectsList">
+                    <!-- Dynamic project rows -->
+                </div>
+                <button class="btn-secondary" style="align-self: flex-start; margin-top: 0.5rem;" onclick="addProjectRow('', true)">
+                    + Thêm quy tắc dự án
+                </button>
+            </div>
+
+            <!-- Required Files Section -->
+            <div class="form-group">
+                <label>Tệp bắt buộc phải tồn tại (Required Files)</label>
+                <div class="field-desc" style="margin-bottom: 0.5rem;">Cấu hình các tệp tin quan trọng bắt buộc phải có trong thư mục làm bài của học sinh (ví dụ: <code>appsettings.json</code>).</div>
+                <div class="items-list" id="filesList">
+                    <!-- Dynamic file rows -->
+                </div>
+                <button class="btn-secondary" style="align-self: flex-start; margin-top: 0.5rem;" onclick="addFileRow('', true)">
+                    + Thêm quy tắc tệp tin
+                </button>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <button class="btn-primary" onclick="saveRubric()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    Lưu cấu hình Rubric
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Lưu cấu hình thành công!</div>
+
+    <script>
+        let rubrics = [];
+
+        window.onload = async () => {
+            await loadRubrics();
+            resetForm();
+        };
+
+        async function loadRubrics() {
+            try {
+                const response = await fetch('/api/grading/rubrics');
+                if (response.ok) {
+                    rubrics = await response.json();
+                    const select = document.getElementById('rubricSelect');
+                    // Reset dropdown
+                    select.innerHTML = '<option value="NEW">-- Tạo Rubric Mới --</option>';
+                    
+                    rubrics.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r.examCode;
+                        opt.textContent = `${r.examCode} (Max: ${r.maxScore}đ)`;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("Lỗi khi tải danh sách Rubrics:", err);
+                showToast("Lỗi kết nối máy chủ khi lấy danh sách Rubrics!", true);
+            }
+        }
+
+        function onRubricSelectChange() {
+            const select = document.getElementById('rubricSelect');
+            const examCode = select.value;
+
+            if (examCode === "NEW") {
+                resetForm();
+            } else {
+                const rubric = rubrics.find(r => r.examCode === examCode);
+                if (rubric) {
+                    loadRubricIntoForm(rubric);
+                }
+            }
+        }
+
+        function loadRubricIntoForm(rubric) {
+            document.getElementById('formTitle').textContent = `Chỉnh sửa Rubric: ${rubric.examCode}`;
+            document.getElementById('rubricIdBadge').textContent = `ID: ${rubric.id}`;
+            document.getElementById('examCode').value = rubric.examCode;
+            document.getElementById('examCode').disabled = true; // Khóa mã đề thi khi sửa
+            document.getElementById('maxScore').value = rubric.maxScore;
+            document.getElementById('solutionPattern').value = rubric.solutionPattern || '';
+            document.getElementById('deductionPoints').value = rubric.deductionPointsPerNamingError;
+            document.getElementById('forbidConnectionString').checked = rubric.forbidHardcodedConnectionString;
+
+            // Load Projects
+            const projectsList = document.getElementById('projectsList');
+            projectsList.innerHTML = '';
+            if (rubric.requiredProjects && rubric.requiredProjects.length > 0) {
+                rubric.requiredProjects.forEach(p => addProjectRow(p.pattern, p.mustExist));
+            }
+
+            // Load Files
+            const filesList = document.getElementById('filesList');
+            filesList.innerHTML = '';
+            if (rubric.requiredFiles && rubric.requiredFiles.length > 0) {
+                rubric.requiredFiles.forEach(f => addFileRow(f.pattern, f.mustExist));
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('formTitle').textContent = "Thiết lập cấu hình Rubric";
+            document.getElementById('rubricIdBadge').textContent = "";
+            document.getElementById('examCode').value = "";
+            document.getElementById('examCode').disabled = false;
+            document.getElementById('maxScore').value = "10.0";
+            document.getElementById('solutionPattern').value = "*.sln";
+            document.getElementById('deductionPoints').value = "1.0";
+            document.getElementById('forbidConnectionString').checked = true;
+
+            document.getElementById('projectsList').innerHTML = '';
+            document.getElementById('filesList').innerHTML = '';
+
+            // Thêm mặc định một vài hàng trống
+            addProjectRow('*.API', true);
+            addFileRow('appsettings.json', true);
+        }
+
+        function addProjectRow(pattern = '', mustExist = true) {
+            const list = document.getElementById('projectsList');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <input type="text" value="${pattern}" placeholder="Mẫu pattern (VD: *.API hoặc *.Infrastructure)" style="width: 100%;">
+                <div class="switch-container" style="padding: 0.5rem 1rem; border-radius: 0.5rem; justify-content: center;">
+                    <input type="checkbox" ${mustExist ? 'checked' : ''} style="width: 1.15rem; height: 1.15rem;">
+                    <label style="font-size: 0.75rem; margin-bottom: 0; cursor: pointer;">Bắt buộc</label>
+                </div>
+                <button class="btn-delete" onclick="this.parentElement.remove()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            `;
+            list.appendChild(row);
+        }
+
+        function addFileRow(pattern = '', mustExist = true) {
+            const list = document.getElementById('filesList');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <input type="text" value="${pattern}" placeholder="Mẫu tên tệp (VD: appsettings.json)" style="width: 100%;">
+                <div class="switch-container" style="padding: 0.5rem 1rem; border-radius: 0.5rem; justify-content: center;">
+                    <input type="checkbox" ${mustExist ? 'checked' : ''} style="width: 1.15rem; height: 1.15rem;">
+                    <label style="font-size: 0.75rem; margin-bottom: 0; cursor: pointer;">Bắt buộc</label>
+                </div>
+                <button class="btn-delete" onclick="this.parentElement.remove()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            `;
+            list.appendChild(row);
+        }
+
+        async function saveRubric() {
+            const examCode = document.getElementById('examCode').value.trim();
+            if (!examCode) {
+                showToast("Vui lòng nhập Mã đề thi!", true);
+                return;
+            }
+
+            const maxScore = parseFloat(document.getElementById('maxScore').value);
+            const solutionPattern = document.getElementById('solutionPattern').value.trim();
+            const deductionPoints = parseFloat(document.getElementById('deductionPoints').value);
+            const forbidConnectionString = document.getElementById('forbidConnectionString').checked;
+
+            // Collect Required Projects
+            const projectRows = document.querySelectorAll('#projectsList .item-row');
+            const requiredProjects = [];
+            projectRows.forEach(row => {
+                const pattern = row.querySelector('input[type="text"]').value.trim();
+                const mustExist = row.querySelector('input[type="checkbox"]').checked;
+                if (pattern) {
+                    requiredProjects.push({ pattern, mustExist });
+                }
+            });
+
+            // Collect Required Files
+            const fileRows = document.querySelectorAll('#filesList .item-row');
+            const requiredFiles = [];
+            fileRows.forEach(row => {
+                const pattern = row.querySelector('input[type="text"]').value.trim();
+                const mustExist = row.querySelector('input[type="checkbox"]').checked;
+                if (pattern) {
+                    requiredFiles.push({ pattern, mustExist });
+                }
+            });
+
+            const payload = {
+                examCode,
+                maxScore,
+                solutionPattern,
+                forbidHardcodedConnectionString: forbidConnectionString,
+                deductionPointsPerNamingError: deductionPoints,
+                requiredProjects,
+                requiredFiles
+            };
+
+            try {
+                const response = await fetch('/api/grading/rubrics', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showToast("Lưu cấu hình Rubric thành công!");
+                    // Reload rubrics list
+                    const currentSelected = examCode;
+                    await loadRubrics();
+                    // Keep the selection
+                    document.getElementById('rubricSelect').value = currentSelected;
+                    onRubricSelectChange();
+                } else {
+                    const text = await response.text();
+                    showToast("Lỗi khi lưu Rubric: " + text, true);
+                }
+            } catch (err) {
+                console.error("Lỗi kết nối khi lưu Rubric:", err);
+                showToast("Không thể kết nối tới máy chủ!", true);
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            if (isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
+            }
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -106,6 +106,9 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
                     b.Property<bool>("Band0Passed")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("Band1Passed")
+                        .HasColumnType("boolean");
+
                     b.PrimitiveCollection<List<string>>("BuildErrors")
                         .IsRequired()
                         .HasColumnType("text[]");
@@ -136,6 +139,10 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
                     b.Property<string>("StudentId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("TestSectionResults")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
 

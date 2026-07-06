@@ -64,11 +64,45 @@ public class CheckStaticStructureCommandHandler : IRequestHandler<CheckStaticStr
         }
 
         // 2. Lấy Rubric của kỳ thi
-        var rubric = await _rubricRepository.GetByIdAsync(request.ExamId);
+        ExamRubric? rubric = null;
+        if (request.ExamId != Guid.Empty)
+        {
+            rubric = await _rubricRepository.GetByIdAsync(request.ExamId);
+        }
+
+        if (rubric == null)
+        {
+            // Fallback 1: Tìm rubric khớp với tên thư mục workspace (ví dụ: Lab2)
+            var allRubrics = await _rubricRepository.GetAllAsync();
+            if (allRubrics.Any() && !string.IsNullOrEmpty(request.WorkspacePath))
+            {
+                var workspaceDirName = Path.GetFileName(request.WorkspacePath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                rubric = allRubrics.FirstOrDefault(r => 
+                    !string.IsNullOrEmpty(r.ExamCode) && (
+                        workspaceDirName.Contains(r.ExamCode, StringComparison.OrdinalIgnoreCase) || 
+                        r.ExamCode.Contains(workspaceDirName, StringComparison.OrdinalIgnoreCase)
+                    ));
+
+                if (rubric == null)
+                {
+                    // Fallback 2: Tìm rubric khớp trong toàn bộ đường dẫn
+                    rubric = allRubrics.FirstOrDefault(r => 
+                        !string.IsNullOrEmpty(r.ExamCode) && 
+                        request.WorkspacePath.Contains(r.ExamCode, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
+            // Fallback 3: Chọn Rubric đầu tiên trong DB để phục vụ chạy thử nghiệm cục bộ (Local Testing)
+            if (rubric == null && allRubrics.Any())
+            {
+                rubric = allRubrics.First();
+            }
+        }
+
         if (rubric == null)
         {
             submission.Status = "Failed";
-            submission.BuildErrors.Add($"Không tìm thấy cấu hình Rubric cho ExamId: {request.ExamId}");
+            submission.BuildErrors.Add($"Không tìm thấy cấu hình Rubric nào trong Database cho ExamId: {request.ExamId} @[{request.WorkspacePath}]");
             await _submissionRepository.SaveChangesAsync();
 
             return MapToDto(submission);

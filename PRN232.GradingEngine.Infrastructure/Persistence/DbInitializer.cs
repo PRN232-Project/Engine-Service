@@ -107,9 +107,8 @@ public static class DbInitializer
             }
 
             var examCode = item.ExamCode.Trim();
+            // Load rubric WITHOUT includes to avoid EF Core relationship tracking/updating conflicts
             var rubric = await context.ExamRubrics
-                .Include(r => r.RequiredProjects)
-                .Include(r => r.RequiredFiles)
                 .FirstOrDefaultAsync(r => r.ExamCode == examCode);
 
             if (rubric is null)
@@ -121,16 +120,30 @@ public static class DbInitializer
                 };
                 await context.ExamRubrics.AddAsync(rubric);
             }
+            else
+            {
+                // Delete old related records directly first and save changes to avoid conflicts
+                var oldProjects = await context.RequiredProjects.Where(p => p.ExamRubricId == rubric.Id).ToListAsync();
+                if (oldProjects.Any())
+                {
+                    context.RequiredProjects.RemoveRange(oldProjects);
+                }
+
+                var oldFiles = await context.RequiredFiles.Where(f => f.ExamRubricId == rubric.Id).ToListAsync();
+                if (oldFiles.Any())
+                {
+                    context.RequiredFiles.RemoveRange(oldFiles);
+                }
+
+                await context.SaveChangesAsync();
+            }
 
             rubric.MaxScore = item.MaxScore;
             rubric.SolutionPattern = item.SolutionPattern;
             rubric.ForbidHardcodedConnectionString = item.ForbidHardcodedConnectionString;
             rubric.DeductionPointsPerNamingError = item.DeductionPointsPerNamingError;
 
-            context.RequiredProjects.RemoveRange(rubric.RequiredProjects);
-            context.RequiredFiles.RemoveRange(rubric.RequiredFiles);
-
-            rubric.RequiredProjects = (item.RequiredProjects ?? new List<ProjectSeedItem>())
+            var newProjects = (item.RequiredProjects ?? new List<ProjectSeedItem>())
                 .Where(p => !string.IsNullOrWhiteSpace(p.Pattern))
                 .Select(p => new RequiredProject
                 {
@@ -141,7 +154,7 @@ public static class DbInitializer
                 })
                 .ToList();
 
-            rubric.RequiredFiles = (item.RequiredFiles ?? new List<FileSeedItem>())
+            var newFiles = (item.RequiredFiles ?? new List<FileSeedItem>())
                 .Where(f => !string.IsNullOrWhiteSpace(f.Pattern))
                 .Select(f => new RequiredFile
                 {
@@ -151,6 +164,9 @@ public static class DbInitializer
                     MustExist = f.MustExist
                 })
                 .ToList();
+
+            await context.RequiredProjects.AddRangeAsync(newProjects);
+            await context.RequiredFiles.AddRangeAsync(newFiles);
         }
 
         await context.SaveChangesAsync();

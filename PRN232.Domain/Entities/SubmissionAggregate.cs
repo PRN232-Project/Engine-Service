@@ -10,6 +10,8 @@ public class SubmissionAggregate
     public Guid ExamId { get; set; }
     
     public bool Band0Passed { get; set; }
+    public bool Band1Passed { get; set; }
+    public List<PRN232.Domain.ValueObjects.TestSectionResult> TestSectionResults { get; set; } = new();
     public List<string> NamingViolations { get; set; } = new();
     public List<string> BuildErrors { get; set; } = new();
     public decimal ScoreDeductions { get; set; }
@@ -24,12 +26,29 @@ public class SubmissionAggregate
         ScoreDeductions = violations.Count * pointsPerError;
     }
 
+    public void RecordBand1Result(bool passed, List<string> errors)
+    {
+        Band1Passed = passed;
+        BuildErrors = errors;
+
+        if (!passed)
+        {
+            Status = "Band1Failed";
+            FinalScore = 0;
+            GradedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            Status = "Band1Passed";
+        }
+    }
+
     public void RecordBuildFailure(List<string> errors)
     {
-        BuildErrors = errors;
         Band0Passed = false;
+        BuildErrors = errors;
         Status = "Failed";
-        FinalScore = 0; // Build fails means 0 points total
+        FinalScore = 0;
         GradedAt = DateTime.UtcNow;
     }
 
@@ -37,5 +56,36 @@ public class SubmissionAggregate
     {
         Band0Passed = true;
         Status = "Band0Passed";
+    }
+
+    public void RecordTestSectionResult(PRN232.Domain.ValueObjects.TestSectionResult result)
+    {
+        if (!Band1Passed)
+            throw new InvalidOperationException("Cannot record test results if Band 1 (Build) has not passed.");
+
+        // Remove old result for this section if exists
+        TestSectionResults.RemoveAll(x => x.SectionName == result.SectionName);
+        TestSectionResults.Add(result);
+    }
+
+    public void CalculateTotalScore()
+    {
+        if (!Band0Passed || !Band1Passed)
+        {
+            FinalScore = 0;
+            return;
+        }
+
+        decimal totalTestScore = 0;
+        foreach (var result in TestSectionResults)
+        {
+            totalTestScore += result.Score;
+        }
+
+        FinalScore = totalTestScore - ScoreDeductions;
+        if (FinalScore < 0) FinalScore = 0;
+
+        Status = "Graded";
+        GradedAt = DateTime.UtcNow;
     }
 }

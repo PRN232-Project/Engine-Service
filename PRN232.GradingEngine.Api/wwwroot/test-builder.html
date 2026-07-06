@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic API Test Builder & Grading Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 28, 45, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: #fff;
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .pipeline-status {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .status-step {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .status-step.pass {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .status-step.fail {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .pass .dot { background: var(--success); }
+        .fail .dot { background: var(--danger); }
+
+        .terminal {
+            background: #05070f;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #38bdf8;
+            max-height: 350px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border-left: 4px solid var(--primary);
+        }
+
+        .testcase-table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge-method {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-method.GET { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-method.POST { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .badge-method.PUT { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .badge-method.DELETE { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .assertion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .assertion-item {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .assertion-item input, .assertion-item select {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .tab-btn.active {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>Grading Portal: Dynamic API Tester</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Thiết lập test case API động & Trình chấm điểm tự động</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <a href="index.html" class="btn-secondary" style="text-decoration: none;">Dashboard</a>
+            <a href="rubric-manager.html" class="btn-secondary" style="text-decoration: none;">Quản lý Rubrics</a>
+            <div class="badge">Band 2: Dynamic JSON API grading</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- BÊN TRÁI: CONFIG & SAMPLES & RUNNER -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <!-- CARD 1: CHỌN BÀI NỘP MẪU -->
+            <div class="card">
+                <div class="card-title">Chọn Bài Nộp Trải Nghiệm</div>
+                <div class="form-group">
+                    <label for="sampleSelect">Danh sách bài nộp của học sinh</label>
+                    <select id="sampleSelect" onchange="onSampleChange()">
+                        <option value="">-- Đang quét bài nộp trong thư mục... --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="submissionId">Submission ID (GUID)</label>
+                    <input type="text" id="submissionId" placeholder="Tự động điền hoặc nhập thủ công...">
+                </div>
+                <div class="form-group">
+                    <label for="workspacePath">Thư mục nguồn (Workspace Path)</label>
+                    <input type="text" id="workspacePath" placeholder="Đường dẫn ổ đĩa tuyệt đối..." onchange="loadWorkspaceProjects(this.value)">
+                </div>
+                <div class="form-group">
+                    <label for="apiProjectPath">API Project (.csproj)</label>
+                    <select id="apiProjectPath">
+                        <option value="">-- Tự động tìm kiếm (Mặc định) --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="examId">Exam ID (GUID)</label>
+                    <input type="text" id="examId" placeholder="Mã bài thi (GUID)...">
+                </div>
+            </div>
+
+            <!-- CARD 2: TRẠNG THÁI PIPELINE CHẤM ĐIỂM -->
+            <div class="card">
+                <div class="card-title">Trình Chạy Chấm Điểm (Pipeline Runner)</div>
+                <div class="pipeline-status">
+                    <div class="status-step" id="step0">
+                        <div class="status-indicator">
+                            <span class="dot"></span>
+                            <span>Band 0: Cấu trúc & Hardcode Connection</span>
+                        </div>
+                        <span id="scoreBand0" style="font-weight: 600;">--</span>
+                    </div>
+
+                    <div class="status-step" id="step1">
+                        <div class="status-indicator">
+                            <span class="dot"></span>
+                            <span>Band 1: Build Solution (.sln)</span>
+                        </div>
+                        <span id="scoreBand1" style="font-weight: 600;">--</span>
+                    </div>
+
+                    <div class="status-step" id="step2">
+                        <div class="status-indicator">
+                            <span class="dot"></span>
+                            <span>Band 2: Dynamic API Functional tests</span>
+                        </div>
+                        <span id="scoreBand2" style="font-weight: 600;">--</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                    <div style="font-size: 1.1rem; font-weight: 700;">Tổng điểm: <span id="finalScore" style="color: var(--primary);">0</span>/10.0</div>
+                    <button class="btn btn-success" onclick="runGradingPipeline()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"/></svg>
+                        Bắt Đầu Chấm Bài
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BÊN PHẢI: TEST BUILDER & LOGS -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <!-- CARD 3: TEST CASE BUILDER -->
+            <div class="card">
+                <div class="card-title">
+                    <span>Bộ Test Cases Động (JSON Schema)</span>
+                    <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="loadPresetPE()">Load Đề PE Mẫu</button>
+                </div>
+
+                <div class="testcase-table-container">
+                    <table id="testCasesTable">
+                        <thead>
+                            <tr>
+                                <th>Tên Test</th>
+                                <th>Method</th>
+                                <th>Đường Dẫn (Path)</th>
+                                <th>Mã Kỳ Vọng</th>
+                                <th>Assert / Headers / Lưu biến</th>
+                                <th style="text-align: right;">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Điền động -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- FORM THÊM TEST CASE MỚI -->
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="font-weight: 600; color: #fff; font-size: 0.95rem;">Thêm Test Case mới:</div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 2fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Tên Test</label>
+                            <input type="text" id="newTcName" placeholder="VD: CreateCustomer_Success">
+                        </div>
+                        <div class="form-group">
+                            <label>Method</label>
+                            <select id="newTcMethod">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Path</label>
+                            <input type="text" id="newTcPath" placeholder="VD: /api/customers">
+                        </div>
+                        <div class="form-group">
+                            <label>Code Mong Đợi</label>
+                            <input type="number" id="newTcExpectedCode" value="200">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Body Request (Chỉ cho POST/PUT)</label>
+                        <textarea id="newTcBody" rows="2" placeholder='{"fullName": "Tran Thi C", "email": "tranthi@example.com"}'></textarea>
+                    </div>
+
+                    <!-- PHẦN ASSERTION ĐỘNG -->
+                    <div class="form-group">
+                        <label>Bộ So Khớp Nội Dung JSON Trả Về (JSONPath Assertions)</label>
+                        <div class="assertion-list" id="newTcAssertions">
+                            <!-- Các dòng assert sẽ được add ở đây -->
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top: 0.5rem; align-self: flex-start; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="addAssertionRow()">+ Thêm dòng check dữ liệu</button>
+                    </div>
+
+                    <!-- PHẦN HEADERS TÙY CHỌN -->
+                    <div class="form-group">
+                        <label>Danh Sách Headers Tùy Chọn (HTTP Headers)</label>
+                        <div class="assertion-list" id="newTcHeaders">
+                            <!-- Các dòng header sẽ được add ở đây -->
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top: 0.5rem; align-self: flex-start; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="addHeaderRow()">+ Thêm Header</button>
+                    </div>
+
+                    <!-- PHẦN TRÍCH XUẤT BIẾN -->
+                    <div class="form-group">
+                        <label>Trích Xuất Biến Từ Response JSON (Extract Variables)</label>
+                        <div class="assertion-list" id="newTcVariables">
+                            <!-- Các dòng trích xuất biến sẽ được add ở đây -->
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top: 0.5rem; align-self: flex-start; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="addVariableRow()">+ Thêm quy tắc trích xuất</button>
+                    </div>
+
+                    <button class="btn" style="align-self: flex-end;" onclick="addTestCase()">Lưu Test Case vào danh sách</button>
+                </div>
+            </div>
+
+            <!-- CARD 4: LOG CHẠY THỰC TẾ -->
+            <div class="card">
+                <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Nhật Ký & Kết Quả Chấm Điểm</span>
+                    <div class="tab-buttons" style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-secondary tab-btn active" id="btnTabOverview" onclick="switchLogTab('overview')" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">Tổng quan kết quả</button>
+                        <button class="btn btn-secondary tab-btn" id="btnTabDetailed" onclick="switchLogTab('detailed')" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">Log chi tiết (Terminal)</button>
+                    </div>
+                </div>
+                
+                <!-- Tab 1: Overview -->
+                <div id="tabContentOverview" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <h3 style="font-size: 1rem; color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.25rem;">Tóm tắt kết quả kiểm thử</h3>
+                        <div id="overviewSummary" style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                            Nhấp "Bắt Đầu Chấm Bài" để xem tóm tắt kết quả...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Detailed Terminal -->
+                <div id="tabContentDetailed" style="display: none;">
+                    <div class="terminal" id="logConsole">Nhấp "Bắt Đầu Chấm Bài" để theo dõi log chạy ngầm và gọi API thời gian thực của sinh viên...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Danh sách test cases hiện tại
+        let testCases = [];
+        let samples = [];
+
+        // Khởi động
+        window.onload = async () => {
+            await loadSamples();
+            loadPresetPE();
+        };
+
+        // Quét các thư mục bài nộp mẫu của sinh viên
+        async function loadSamples() {
+            try {
+                const response = await fetch('/api/grading/samples');
+                samples = await response.json();
+                const select = document.getElementById('sampleSelect');
+                select.innerHTML = '<option value="">-- Chọn bài nộp của sinh viên --</option>';
+                
+                samples.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.submissionId;
+                    opt.textContent = s.displayName;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Lỗi khi tải samples:", err);
+            }
+        }
+
+        function onSampleChange() {
+            const select = document.getElementById('sampleSelect');
+            const selected = samples.find(s => s.submissionId === select.value);
+            if (selected) {
+                document.getElementById('submissionId').value = selected.submissionId;
+                document.getElementById('workspacePath').value = selected.workspacePath;
+                document.getElementById('examId').value = selected.examId || '';
+                loadWorkspaceProjects(selected.workspacePath);
+            } else {
+                document.getElementById('submissionId').value = '';
+                document.getElementById('workspacePath').value = '';
+                document.getElementById('examId').value = '';
+                loadWorkspaceProjects('');
+            }
+        }
+
+        async function loadWorkspaceProjects(workspacePath) {
+            const select = document.getElementById('apiProjectPath');
+            select.innerHTML = '<option value="">-- Quét dự án... --</option>';
+            if (!workspacePath) {
+                select.innerHTML = '<option value="">-- Tự động tìm kiếm (Mặc định) --</option>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/grading/projects?workspacePath=${encodeURIComponent(workspacePath)}`);
+                const projects = await response.json();
+                
+                select.innerHTML = '<option value="">-- Tự động tìm kiếm (Mặc định) --</option>';
+                
+                projects.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p;
+                    
+                    // Auto-select project containing 'Api' or 'Web' (case-insensitive)
+                    const lowerP = p.toLowerCase();
+                    if (lowerP.includes('api') || lowerP.includes('web')) {
+                        opt.selected = true;
+                    }
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Lỗi khi tải danh sách dự án:", err);
+                select.innerHTML = '<option value="">-- Lỗi khi tải danh sách --</option>';
+            }
+        }
+
+        function switchLogTab(tabName) {
+            const btnOverview = document.getElementById('btnTabOverview');
+            const btnDetailed = document.getElementById('btnTabDetailed');
+            const tabOverview = document.getElementById('tabContentOverview');
+            const tabDetailed = document.getElementById('tabContentDetailed');
+
+            if (tabName === 'overview') {
+                btnOverview.classList.add('active');
+                btnDetailed.classList.remove('active');
+                tabOverview.style.display = 'flex';
+                tabDetailed.style.display = 'none';
+            } else {
+                btnDetailed.classList.add('active');
+                btnOverview.classList.remove('active');
+                tabDetailed.style.display = 'block';
+                tabOverview.style.display = 'none';
+            }
+        }
+
+        // Tải trước đề thi PE mẫu (theo ảnh của người dùng cung cấp)
+        function loadPresetPE() {
+            testCases = [
+                {
+                    name: "1. Login_Admin_Success",
+                    method: "POST",
+                    urlPath: "/api/v1/auth/login",
+                    requestBody: JSON.stringify({ username: "admin", password: "123456" }, null, 2),
+                    expectedStatusCode: 200,
+                    jsonAssertions: [
+                        { jsonPath: "$.data.accessToken", operator: "notnull", expectedValue: "" }
+                    ],
+                    headers: [],
+                    extractVariables: [
+                        { jsonPath: "$.data.accessToken", variableName: "token" }
+                    ]
+                },
+                {
+                    name: "2. GetCourses_Authorized_Success",
+                    method: "GET",
+                    urlPath: "/api/v1/courses",
+                    requestBody: "",
+                    expectedStatusCode: 200,
+                    jsonAssertions: [],
+                    headers: [
+                        { name: "Authorization", value: "Bearer {{token}}" }
+                    ],
+                    extractVariables: []
+                },
+                {
+                    name: "3. CreateCourse_Admin_Success",
+                    method: "POST",
+                    urlPath: "/api/v1/courses",
+                    requestBody: JSON.stringify({ courseName: "C# Advanced Programming - {{$randomInt}}", semesterId: 1 }, null, 2),
+                    expectedStatusCode: 201,
+                    jsonAssertions: [
+                        { jsonPath: "$.data.courseId", operator: "notnull", expectedValue: "" }
+                    ],
+                    headers: [
+                        { name: "Authorization", value: "Bearer {{token}}" }
+                    ],
+                    extractVariables: [
+                        { jsonPath: "$.data.courseId", variableName: "newCourseId" }
+                    ]
+                },
+                {
+                    name: "4. GetCourseDetail_Success",
+                    method: "GET",
+                    urlPath: "/api/v1/courses/{{newCourseId}}",
+                    requestBody: "",
+                    expectedStatusCode: 200,
+                    jsonAssertions: [
+                        { jsonPath: "$.data.courseName", operator: "contains", expectedValue: "C# Advanced Programming" }
+                    ],
+                    headers: [
+                        { name: "Authorization", value: "Bearer {{token}}" }
+                    ],
+                    extractVariables: []
+                }
+            ];
+            renderTestCasesTable();
+        }
+
+        function renderTestCasesTable() {
+            const tbody = document.querySelector('#testCasesTable tbody');
+            tbody.innerHTML = '';
+            
+            testCases.forEach((tc, index) => {
+                const tr = document.createElement('tr');
+                
+                // Assert string summary
+                let assertSummary = '';
+                if (tc.jsonAssertions && tc.jsonAssertions.length > 0) {
+                    tc.jsonAssertions.forEach(a => {
+                        assertSummary += `<div><code>${a.jsonPath}</code> ${a.operator} '${a.expectedValue}'</div>`;
+                    });
+                } else {
+                    assertSummary = '<div style="color:var(--text-muted)">Không check JSON</div>';
+                }
+
+                // Headers summary
+                let headersSummary = '';
+                if (tc.headers && tc.headers.length > 0) {
+                    tc.headers.forEach(h => {
+                        headersSummary += `<div><strong>${h.name}</strong>: <code>${h.value}</code></div>`;
+                    });
+                } else {
+                    headersSummary = '<div style="color:var(--text-muted)">Không gửi header</div>';
+                }
+
+                // Extract variables summary
+                let extractSummary = '';
+                if (tc.extractVariables && tc.extractVariables.length > 0) {
+                    tc.extractVariables.forEach(v => {
+                        extractSummary += `<div><code>${v.jsonPath}</code> ➔ <code>\${${v.variableName}}</code></div>`;
+                    });
+                } else {
+                    extractSummary = '<div style="color:var(--text-muted)">Không lưu biến</div>';
+                }
+
+                tr.innerHTML = `
+                    <td><strong>${tc.name}</strong></td>
+                    <td><span class="badge-method ${tc.method}">${tc.method}</span></td>
+                    <td><code>${tc.urlPath}</code></td>
+                    <td><span style="color:#60a5fa">${tc.expectedStatusCode}</span></td>
+                    <td style="font-size:0.8rem; line-height: 1.4;">
+                        <div style="margin-bottom:0.35rem;"><strong>JSON:</strong> ${assertSummary}</div>
+                        <div style="margin-bottom:0.35rem;"><strong>Headers:</strong> ${headersSummary}</div>
+                        <div><strong>Lưu biến:</strong> ${extractSummary}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-danger btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.8rem;" onclick="deleteTestCase(${index})">Xóa</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addAssertionRow(jsonPath = "", operator = "Equal", expectedValue = "") {
+            const container = document.getElementById('newTcAssertions');
+            const row = document.createElement('div');
+            row.className = 'assertion-item';
+            row.innerHTML = `
+                <input type="text" placeholder="JsonPath (VD: $[0].fullName)" style="flex:2;" value="${jsonPath}">
+                <select style="flex:1;">
+                    <option value="Equal" ${operator === 'Equal' ? 'selected' : ''}>Equal</option>
+                    <option value="NotNull" ${operator === 'NotNull' ? 'selected' : ''}>NotNull</option>
+                    <option value="Contains" ${operator === 'Contains' ? 'selected' : ''}>Contains</option>
+                    <option value="Empty" ${operator === 'Empty' ? 'selected' : ''}>Empty</option>
+                </select>
+                <input type="text" placeholder="Giá trị kì vọng" style="flex:2;" value="${expectedValue}">
+                <button class="btn btn-danger" style="padding:0.4rem; border-radius:8px;" onclick="this.parentElement.remove()">X</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addHeaderRow(name = "", value = "") {
+            const container = document.getElementById('newTcHeaders');
+            const row = document.createElement('div');
+            row.className = 'assertion-item';
+            row.innerHTML = `
+                <input type="text" placeholder="Header Name (VD: Authorization)" style="flex:2;" value="${name}">
+                <input type="text" placeholder="Header Value (VD: Bearer {{token}})" style="flex:3;" value="${value}">
+                <button class="btn btn-danger" style="padding:0.4rem; border-radius:8px;" onclick="this.parentElement.remove()">X</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addVariableRow(jsonPath = "", variableName = "") {
+            const container = document.getElementById('newTcVariables');
+            const row = document.createElement('div');
+            row.className = 'assertion-item';
+            row.innerHTML = `
+                <input type="text" placeholder="JsonPath trong response (VD: $.token)" style="flex:2;" value="${jsonPath}">
+                <input type="text" placeholder="Tên biến muốn lưu (VD: token)" style="flex:2;" value="${variableName}">
+                <button class="btn btn-danger" style="padding:0.4rem; border-radius:8px;" onclick="this.parentElement.remove()">X</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addTestCase() {
+            const name = document.getElementById('newTcName').value.trim();
+            const method = document.getElementById('newTcMethod').value;
+            const path = document.getElementById('newTcPath').value.trim();
+            const expectedCode = parseInt(document.getElementById('newTcExpectedCode').value);
+            const body = document.getElementById('newTcBody').value.trim();
+
+            if (!name || !path) {
+                alert("Vui lòng điền đầy đủ Tên test case và Đường dẫn API.");
+                return;
+            }
+
+            // Lấy assertions
+            const assertRows = document.querySelectorAll('#newTcAssertions .assertion-item');
+            const jsonAssertions = [];
+            assertRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const select = row.querySelector('select');
+                const jsonPath = inputs[0].value.trim();
+                const operator = select.value;
+                const expectedValue = inputs[1].value.trim();
+
+                if (jsonPath) {
+                    jsonAssertions.push({ jsonPath, operator, expectedValue });
+                }
+            });
+
+            // Lấy Headers
+            const headerRows = document.querySelectorAll('#newTcHeaders .assertion-item');
+            const headers = [];
+            headerRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const hName = inputs[0].value.trim();
+                const hValue = inputs[1].value.trim();
+                if (hName) {
+                    headers.push({ name: hName, value: hValue });
+                }
+            });
+
+            // Lấy Extract Variables
+            const varRows = document.querySelectorAll('#newTcVariables .assertion-item');
+            const extractVariables = [];
+            varRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const jPath = inputs[0].value.trim();
+                const varName = inputs[1].value.trim();
+                if (jPath && varName) {
+                    extractVariables.push({ jsonPath: jPath, variableName: varName });
+                }
+            });
+
+            testCases.push({
+                name,
+                method,
+                urlPath: path,
+                expectedStatusCode: expectedCode,
+                requestBody: body || null,
+                jsonAssertions,
+                headers,
+                extractVariables
+            });
+
+            // Reset form
+            document.getElementById('newTcName').value = '';
+            document.getElementById('newTcPath').value = '';
+            document.getElementById('newTcExpectedCode').value = '200';
+            document.getElementById('newTcBody').value = '';
+            document.getElementById('newTcAssertions').innerHTML = '';
+            document.getElementById('newTcHeaders').innerHTML = '';
+            document.getElementById('newTcVariables').innerHTML = '';
+
+            renderTestCasesTable();
+        }
+
+        function deleteTestCase(index) {
+            testCases.splice(index, 1);
+            renderTestCasesTable();
+        }
+
+        // CHẠY PIPELINE CHẤM ĐIỂM
+        async function runGradingPipeline() {
+            const subId = document.getElementById('submissionId').value;
+            const wsPath = document.getElementById('workspacePath').value;
+            const consoleEl = document.getElementById('logConsole');
+            const overviewEl = document.getElementById('overviewSummary');
+
+            if (!subId || !wsPath) {
+                alert("Vui lòng chọn một bài nộp ở ô phía trên trước khi chấm bài.");
+                return;
+            }
+
+            const examId = document.getElementById('examId').value.trim() || "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+            const apiProjSelect = document.getElementById('apiProjectPath');
+            const selectedProj = apiProjSelect ? apiProjSelect.value : "";
+
+            consoleEl.textContent = "--> Bắt đầu quá trình chấm điểm 3 bước (Band 0 -> Band 1 -> Band 2)...\n";
+            overviewEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <div><strong>Quy trình bắt đầu lúc:</strong> ${new Date().toLocaleTimeString()}</div>
+                    <div id="overviewStep0">⏳ Đang chạy Band 0: Phân tích cấu trúc thư mục...</div>
+                    <div id="overviewStep1">⏳ Đang chờ chạy Band 1...</div>
+                    <div id="overviewStep2">⏳ Đang chờ chạy Band 2...</div>
+                </div>
+            `;
+            
+            resetStatusStyles();
+            switchLogTab('overview');
+
+            try {
+                // BƯỚC 0: CHECK BAND 0
+                consoleEl.textContent += "[PROCESS] Chạy Band 0: Phân tích cấu trúc thư mục & Quét Hardcode Connection...\n";
+                const b0Res = await fetch('/api/grading/check-band0', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        submissionId: subId,
+                        workspacePath: wsPath,
+                        studentId: "HE180000",
+                        examId: examId
+                    })
+                });
+                const b0Data = await b0Res.json();
+                updateStepStatus('step0', b0Data.band0Passed);
+                
+                if (!b0Data.band0Passed) {
+                    document.getElementById('scoreBand0').textContent = "FAILED (0.0)";
+                    consoleEl.textContent += `[FAILED] Band 0 không vượt qua. Lỗi:\n${b0Data.buildErrors.join('\n')}\n`;
+                    
+                    document.getElementById('overviewStep0').innerHTML = `
+                        <div style="color: var(--danger); font-weight: 600;">Band 0: ❌ THẤT BẠI (Cấu trúc không hợp lệ hoặc thiếu file)</div>
+                        <pre style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); padding:0.5rem; margin-top:0.25rem; border-radius:6px; font-size:0.8rem; color:#f87171; overflow-x:auto;">${b0Data.buildErrors.join('\n')}</pre>
+                    `;
+                    document.getElementById('overviewStep1').innerHTML = `<div style="color: var(--text-muted);">Band 1: 🚫 Bị bỏ qua vì Band 0 thất bại</div>`;
+                    document.getElementById('overviewStep2').innerHTML = `<div style="color: var(--text-muted);">Band 2: 🚫 Bị bỏ qua vì Band 0 thất bại</div>`;
+                    updateFinalScore(0);
+                    return;
+                }
+                document.getElementById('scoreBand0').textContent = "PASSED";
+                consoleEl.textContent += "[SUCCESS] Band 0 thành công!\n\n";
+                document.getElementById('overviewStep0').innerHTML = `<div style="color: var(--success); font-weight: 600;">Band 0: ✅ ĐẠT (Cấu trúc thư mục chuẩn, không phát hiện hardcode Connection String)</div>`;
+
+                const activeSubId = b0Data.submissionId || subId;
+                document.getElementById('submissionId').value = activeSubId;
+
+                // BƯỚC 1: BUILD SOLUTION
+                document.getElementById('overviewStep1').innerHTML = `⏳ Đang chạy Band 1: Tự động biên dịch code sinh viên (dotnet build)...`;
+                consoleEl.textContent += "[PROCESS] Chạy Band 1: Tự động biên dịch code sinh viên (dotnet build)...\n";
+                const b1Res = await fetch('/api/grading/check-band1', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        submissionId: activeSubId,
+                        workspacePath: wsPath
+                    })
+                });
+                const b1Data = await b1Res.json();
+                updateStepStatus('step1', b1Data.band1Passed);
+
+                if (!b1Data.band1Passed) {
+                    document.getElementById('scoreBand1').textContent = "FAILED (0.0)";
+                    consoleEl.textContent += `[FAILED] Biên dịch code thất bại. Lỗi build:\n${b1Data.buildErrors.join('\n')}\n`;
+                    
+                    document.getElementById('overviewStep1').innerHTML = `
+                        <div style="color: var(--danger); font-weight: 600;">Band 1: ❌ THẤT BẠI (Lỗi biên dịch - dotnet build)</div>
+                        <pre style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); padding:0.5rem; margin-top:0.25rem; border-radius:6px; font-size:0.8rem; color:#f87171; overflow-x:auto;">${b1Data.buildErrors.join('\n')}</pre>
+                    `;
+                    document.getElementById('overviewStep2').innerHTML = `<div style="color: var(--text-muted);">Band 2: 🚫 Bị bỏ qua vì Band 1 thất bại</div>`;
+                    updateFinalScore(0);
+                    return;
+                }
+                document.getElementById('scoreBand1').textContent = "PASSED";
+                consoleEl.textContent += "[SUCCESS] Biên dịch thành công!\n\n";
+                document.getElementById('overviewStep1').innerHTML = `<div style="color: var(--success); font-weight: 600;">Band 1: ✅ ĐẠT (Biên dịch dự án thành công không có lỗi)</div>`;
+
+                // BƯỚC 2: RUN TEST CASES
+                document.getElementById('overviewStep2').innerHTML = `⏳ Đang chạy Band 2: Khởi động API và thực thi các HTTP request test...`;
+                consoleEl.textContent += "[PROCESS] Chạy Band 2: Khởi động API sinh viên và gửi HTTP requests test...\n";
+                const b2Res = await fetch('/api/grading/check-band2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        submissionId: activeSubId,
+                        workspacePath: wsPath,
+                        sectionName: "CRUD/Auth API section",
+                        maxScore: 10,
+                        testCases: testCases,
+                        apiProjectPath: selectedProj
+                    })
+                });
+                const b2Data = await b2Res.json();
+                
+                const b2Result = b2Data.testSectionResults[b2Data.testSectionResults.length - 1];
+                const b2Passed = b2Result.passedCount === b2Result.totalCount;
+                updateStepStatus('step2', b2Passed);
+                
+                document.getElementById('scoreBand2').textContent = `${b2Result.passedCount}/${b2Result.totalCount} Pass`;
+                consoleEl.textContent += `\n[TEST EXECUTION LOGS]:\n${b2Result.executionLog}\n`;
+
+                let step2Html = `<div style="color: ${b2Passed ? 'var(--success)' : 'var(--warning)'}; font-weight: 600;">Band 2: ${b2Passed ? '✅' : '⚠️'} CHẤM ĐIỂM API (${b2Result.passedCount}/${b2Result.totalCount} Test case vượt qua)</div>`;
+                
+                if (b2Result.failedTests && b2Result.failedTests.length > 0) {
+                    let failedList = b2Result.failedTests.map(t => `<li style="margin-left:1.5rem; list-style-type:disc; color: #f87171;">${t}</li>`).join('');
+                    step2Html += `<ul style="font-size:0.85rem; margin-top:0.25rem; display:flex; flex-direction:column; gap:0.25rem;">${failedList}</ul>`;
+                } else if (b2Result.totalCount > 0) {
+                    step2Html += `<div style="color:var(--success); font-size:0.85rem; margin-top:0.25rem; margin-left:1.5rem;">🎉 Hoàn hảo! Toàn bộ ${b2Result.totalCount} kịch bản kiểm thử API đều trả về dữ liệu đúng chuẩn kỳ vọng!</div>`;
+                }
+                document.getElementById('overviewStep2').innerHTML = step2Html;
+
+                updateFinalScore(b2Data.finalScore);
+
+            } catch (err) {
+                consoleEl.textContent += `\n[FATAL SYSTEM ERROR]: ${err.message}\n`;
+                document.getElementById('overviewStep2').innerHTML = `<div style="color: var(--danger); font-weight: 600;">❌ LỖI HỆ THỐNG: ${err.message}</div>`;
+            }
+        }
+
+        function updateStepStatus(stepId, passed) {
+            const stepEl = document.getElementById(stepId);
+            stepEl.classList.remove('pass', 'fail');
+            stepEl.classList.add(passed ? 'pass' : 'fail');
+        }
+
+        function resetStatusStyles() {
+            ['step0', 'step1', 'step2'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('pass', 'fail');
+            });
+            document.getElementById('scoreBand0').textContent = '--';
+            document.getElementById('scoreBand1').textContent = '--';
+            document.getElementById('scoreBand2').textContent = '--';
+            document.getElementById('finalScore').textContent = '0';
+        }
+
+        function updateFinalScore(score) {
+            document.getElementById('finalScore').textContent = score.toFixed(1);
+        }
+    </script>
+</body>
+</html>
