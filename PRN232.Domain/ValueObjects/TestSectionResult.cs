@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PRN232.Domain.ValueObjects;
 
@@ -15,6 +16,7 @@ public class TestSectionResult
 
     public TestSectionResult() { }
 
+    [JsonConstructor]
     public TestSectionResult(string sectionName, decimal maxScore, int passedCount, int totalCount, string executionLog, List<string> failedTests)
     {
         SectionName = sectionName;

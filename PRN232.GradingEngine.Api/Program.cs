@@ -6,6 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add controllers support
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
+builder.Services.AddCors(options => options.AddPolicy("LocalFrontend", policy =>
+    policy.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:5173"])
+        .AllowAnyHeader().AllowAnyMethod()));
 
 // Add Swagger generator support
 builder.Services.AddEndpointsApiExplorer();
@@ -46,6 +50,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+app.UseCors("LocalFrontend");
 
 // Redirect root to index.html
 app.MapGet("/", async context =>
