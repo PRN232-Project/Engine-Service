@@ -15,41 +15,6 @@
       "requiredFiles": [
         { "pattern": "^appsettings(\\.Development)?\\.json$", "mustExist": true }
       ]
-    },
-    {
-      "examCode": "PRN231_SU25",
-      "maxScore": 10.0,
-      "solutionPattern": "^PRN231_SU25_{StudentID}$",
-      "forbidHardcodedConnectionString": true,
-      "deductionPointsPerNamingError": 1.0,
-      "requiredProjects": [
-        { "pattern": "^PRN231_SU25_{StudentID}\\.API$", "mustExist": true }
-      ],
-      "requiredFiles": [
-        { "pattern": "^appsettings(\\.Development)?\\.json$", "mustExist": true }
-      ]
-    },
-    {
-      "examCode": "PRN232.LMS",
-      "maxScore": 10.0,
-      "solutionPattern": "*.sln",
-      "forbidHardcodedConnectionString": true,
-      "deductionPointsPerNamingError": 1.0,
-      "requiredProjects": [],
-      "requiredFiles": [
-        { "pattern": "^appsettings(\\.Development)?\\.json$", "mustExist": true }
-      ]
-    },
-    {
-      "examCode": "PRN223-DEMO",
-      "maxScore": 10.0,
-      "solutionPattern": "*.sln",
-      "forbidHardcodedConnectionString": true,
-      "deductionPointsPerNamingError": 1.0,
-      "requiredProjects": [],
-      "requiredFiles": [
-        { "pattern": "^appsettings(\\.Development)?\\.json$", "mustExist": true }
-      ]
     }
   ]
 }
