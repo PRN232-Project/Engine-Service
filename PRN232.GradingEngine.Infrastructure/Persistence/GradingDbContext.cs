@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using PRN232.Domain.Entities;
+using PRN232.Domain.ValueObjects;
 
 namespace PRN232.GradingEngine.Infrastructure.Persistence;
 
 public class GradingDbContext : DbContext
 {
+    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new();
     public GradingDbContext(DbContextOptions<GradingDbContext> options) : base(options)
     {
     }
@@ -60,14 +63,21 @@ public class GradingDbContext : DbContext
             entity.Property(s => s.BuildErrors)
                 .HasColumnType("text[]")
                 .IsRequired();
-            entity.Property(s => s.TestSectionResults)
+            var testSectionResults = entity.Property(s => s.TestSectionResults)
                 .HasColumnType("jsonb")
                 .HasConversion(
-                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                    v => System.Text.Json.JsonSerializer.Serialize(v, JsonOptions),
                     v => DeserializeTestSectionResults(v)
                 );
+            testSectionResults.Metadata.SetValueComparer(new ValueComparer<List<TestSectionResult>>(
+                (left, right) => SerializeTestSectionResults(left) == SerializeTestSectionResults(right),
+                value => SerializeTestSectionResults(value).GetHashCode(),
+                value => DeserializeTestSectionResults(SerializeTestSectionResults(value))));
         });
     }
+
+    private static string SerializeTestSectionResults(List<TestSectionResult>? value) =>
+        System.Text.Json.JsonSerializer.Serialize(value ?? [], JsonOptions);
 
     private static System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult> DeserializeTestSectionResults(string v)
     {
@@ -75,7 +85,7 @@ public class GradingDbContext : DbContext
             return new System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>();
         try
         {
-            return System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>>(v, (System.Text.Json.JsonSerializerOptions)null) 
+            return System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>>(v, JsonOptions)
                 ?? new System.Collections.Generic.List<PRN232.Domain.ValueObjects.TestSectionResult>();
         }
         catch

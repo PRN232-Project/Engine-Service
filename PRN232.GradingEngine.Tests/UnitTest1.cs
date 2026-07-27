@@ -1,5 +1,7 @@
 ﻿using System.Text;
+using System.Text.Json;
 using PRN232.Domain.Entities;
+using PRN232.Domain.ValueObjects;
 using PRN232.GradingEngine.Infrastructure.StaticAnalysis;
 
 namespace PRN232.GradingEngine.Tests;
@@ -130,6 +132,23 @@ public class RoslynStructureAnalyzerTests : IDisposable
         var violations = await _sut.CheckHardcodedConnectionStringAsync(workspace);
 
         Assert.DoesNotContain(violations, v => v.Contains("Snapshot.cs", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void TestSectionResult_JsonRoundTrip_PreservesPrivateSetProperties()
+    {
+        var original = new TestSectionResult("API", 10, 1, 1, "passed", []);
+
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<TestSectionResult>(json);
+
+        Assert.NotNull(restored);
+        Assert.Equal("API", restored.SectionName);
+        Assert.Equal(10, restored.MaxScore);
+        Assert.Equal(1, restored.PassedCount);
+        Assert.Equal(1, restored.TotalCount);
+        Assert.Equal(10, restored.Score);
+        Assert.Equal("passed", restored.ExecutionLog);
     }
 
     public void Dispose()
