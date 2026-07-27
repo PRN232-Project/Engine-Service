@@ -72,7 +72,9 @@ public class DynamicApiTestRunner : ITestRunner
             Arguments = $"run --project \"{apiProject}\" --urls \"http://localhost:5000\"",
             WorkingDirectory = Path.GetDirectoryName(apiProject),
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
         };
 
         Process? apiProcess = null;
@@ -104,6 +106,29 @@ public class DynamicApiTestRunner : ITestRunner
 
             if (!isStarted)
             {
+                string stdOut = "";
+                string stdErr = "";
+                try
+                {
+                    if (apiProcess.HasExited)
+                    {
+                        stdOut = apiProcess.StandardOutput.ReadToEnd();
+                        stdErr = apiProcess.StandardError.ReadToEnd();
+                    }
+                    else
+                    {
+                        apiProcess.Kill(true);
+                        stdOut = apiProcess.StandardOutput.ReadToEnd();
+                        stdErr = apiProcess.StandardError.ReadToEnd();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    stdErr = $"Failed to read process output: {ex.Message}";
+                }
+
+                executionLog.AppendLine($"[API Standard Output]:\n{stdOut}");
+                executionLog.AppendLine($"[API Standard Error]:\n{stdErr}");
                 executionLog.AppendLine("Lỗi: Quá thời gian khởi động API (Timeout 10s). API của sinh viên có thể bị lỗi cú pháp hoặc cổng 5000 bị chiếm dụng.");
                 failedTests.Add("Startup Error: API failed to start within 10 seconds.");
                 return new TestSectionResult(sectionName, maxScore, 0, 1, executionLog.ToString(), failedTests);
