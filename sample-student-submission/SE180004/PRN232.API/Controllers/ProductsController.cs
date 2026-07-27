@@ -8,39 +8,37 @@ namespace PRN232.API.Controllers;
 [Route("api/products")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductService _productService;
+    private readonly IProductService _productSvc;
 
-    public ProductsController(IProductService productService)
+    public ProductsController(IProductService productSvc)
     {
-        _productService = productService;
+        _productSvc = productSvc;
     }
 
     // TC01: Get all products
     [HttpGet]
-    public IActionResult GetProducts()
+    public IActionResult FetchAllProducts()
     {
-        var result = _productService.GetAll();
-        return Ok(result);
+        var productList = _productSvc.GetAll();
+        return Ok(productList);
     }
 
     // TC02: Create product
     [HttpPost]
-    public IActionResult AddProduct([FromBody] CreateProductDto dto)
+    public IActionResult AddNewProduct([FromBody] CreateProductDto data)
     {
-        var created = _productService.Create(dto);
-        return CreatedAtAction(nameof(GetProductById), new { id = created.Id }, created);
+        var newProduct = _productSvc.Create(data);
+        return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, newProduct);
     }
 
     // TC03: Get product by ID
     [HttpGet("{id:guid}")]
     public IActionResult GetProductById(Guid id)
     {
-        var product = _productService.GetById(id);
-        if (product == null)
-        {
-            return NotFound(new { message = $"Product with ID {id} was not found." });
-        }
-        return Ok(product);
+        var p = _productSvc.GetById(id);
+        return p == null 
+            ? NotFound(new { message = $"Product with ID {id} was not found." }) 
+            : Ok(p);
     }
 
     // TC04: Update product

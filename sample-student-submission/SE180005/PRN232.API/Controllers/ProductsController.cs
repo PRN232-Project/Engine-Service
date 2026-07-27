@@ -8,50 +8,42 @@ namespace PRN232.API.Controllers;
 [Route("api/products")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductService _productService;
+    private readonly IProductService _service;
 
-    public ProductsController(IProductService productService)
+    public ProductsController(IProductService service)
     {
-        _productService = productService;
+        this._service = service;
     }
 
     // TC01: Get all products
     [HttpGet]
-    public IActionResult GetProducts()
+    public IActionResult LoadProducts()
     {
-        var result = _productService.GetAll();
-        return Ok(result);
+        return Ok(_service.GetAll());
     }
 
     // TC02: Create product
     [HttpPost]
-    public IActionResult AddProduct([FromBody] CreateProductDto dto)
+    public IActionResult InsertProduct([FromBody] CreateProductDto inputDto)
     {
-        var created = _productService.Create(dto);
-        return CreatedAtAction(nameof(GetProductById), new { id = created.Id }, created);
+        var prod = _service.Create(inputDto);
+        return CreatedAtAction("GetProductById", new { id = prod.Id }, prod);
     }
 
     // TC03: Get product by ID
     [HttpGet("{id:guid}")]
     public IActionResult GetProductById(Guid id)
     {
-        var product = _productService.GetById(id);
-        if (product == null)
-        {
+        var data = _service.GetById(id);
+        if (data is null)
             return NotFound(new { message = $"Product with ID {id} was not found." });
-        }
-        return Ok(product);
+        return Ok(data);
     }
 
     // TC04: Update product
     [HttpPut("{id:guid}")]
     public IActionResult UpdateProduct(Guid id, [FromBody] UpdateProductDto dto)
     {
-        var updated = _productService.Update(id, dto);
-        if (updated == null)
-        {
-            return NotFound(new { message = $"Product with ID {id} was not found." });
-        }
-        return Ok(updated);
+        return StatusCode(500, new { message = "Failed to update product for student" });
     }
 }

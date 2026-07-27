@@ -34,7 +34,7 @@ public class RoslynStructureAnalyzer : IStaticCodeAnalyzer
         }
 
         var slnFile = slnFiles[0];
-        var slnName = Path.GetFileNameWithoutExtension(slnFile);
+        var slnName = Path.GetFileName(slnFile);
         var solutionPattern = ResolveStudentPattern(rubric.SolutionPattern, studentId);
 
         if (!Regex.IsMatch(slnName, solutionPattern))

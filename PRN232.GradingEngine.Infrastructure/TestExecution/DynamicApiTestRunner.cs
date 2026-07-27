@@ -69,7 +69,7 @@ public class DynamicApiTestRunner : ITestRunner
         var startInfo = new ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = $"run --project \"{apiProject}\" --urls \"http://localhost:5000\"",
+            Arguments = $"run --no-build --project \"{apiProject}\" --urls \"http://localhost:5000\"",
             WorkingDirectory = Path.GetDirectoryName(apiProject),
             UseShellExecute = false,
             CreateNoWindow = true,
