@@ -1,13 +1,9 @@
-using PRN232.API.Services;
 
-var builder = WebApplication.CreateBuilder(args);
-
+using PRN232.Services;
+var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
-builder.Services.AddSingleton<IProductService, ProductService>();
-
+builder.Services.AddSingleton<ProductService>();
 var app = builder.Build();
-
-app.UseAuthorization();
+// [COMPILE_ERROR_PLACEHOLDER]
 app.MapControllers();
-
 app.Run();
