@@ -17,6 +17,7 @@ public class GradingDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.HasDefaultSchema("grading");
 
         // Map ExamRubric and configure relational 1-N constraints
         modelBuilder.Entity<ExamRubric>(entity =>

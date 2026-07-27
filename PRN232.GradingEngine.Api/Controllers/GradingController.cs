@@ -13,11 +13,13 @@ using PRN232.GradingEngine.Application.UseCases.RunTestSection;
 using PRN232.Domain.ValueObjects;
 using PRN232.Domain.Entities;
 using PRN232.GradingEngine.Infrastructure.Persistence;
+using PRN232.GradingEngine.Api.Security;
 
 namespace PRN232.GradingEngine.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[GrpcAuthorize(Roles = "Lecturer,ExamOfficer")]
 public class GradingController : ControllerBase
 {
     private readonly IMediator _mediator;

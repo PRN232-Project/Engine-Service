@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -12,8 +12,12 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "grading");
+
             migrationBuilder.CreateTable(
                 name: "ExamRubrics",
+                schema: "grading",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -30,6 +34,7 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Submissions",
+                schema: "grading",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -51,6 +56,7 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RequiredFiles",
+                schema: "grading",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -65,12 +71,14 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
                         name: "FK_RequiredFiles_ExamRubrics_ExamRubricId",
                         column: x => x.ExamRubricId,
                         principalTable: "ExamRubrics",
+                        principalSchema: "grading",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "RequiredProjects",
+                schema: "grading",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -85,6 +93,7 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
                         name: "FK_RequiredProjects_ExamRubrics_ExamRubricId",
                         column: x => x.ExamRubricId,
                         principalTable: "ExamRubrics",
+                        principalSchema: "grading",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -92,11 +101,13 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_RequiredFiles_ExamRubricId",
                 table: "RequiredFiles",
+                schema: "grading",
                 column: "ExamRubricId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RequiredProjects_ExamRubricId",
                 table: "RequiredProjects",
+                schema: "grading",
                 column: "ExamRubricId");
         }
 
@@ -104,16 +115,20 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "RequiredFiles");
+                name: "RequiredFiles",
+                schema: "grading");
 
             migrationBuilder.DropTable(
-                name: "RequiredProjects");
+                name: "RequiredProjects",
+                schema: "grading");
 
             migrationBuilder.DropTable(
-                name: "Submissions");
+                name: "Submissions",
+                schema: "grading");
 
             migrationBuilder.DropTable(
-                name: "ExamRubrics");
+                name: "ExamRubrics",
+                schema: "grading");
         }
     }
 }

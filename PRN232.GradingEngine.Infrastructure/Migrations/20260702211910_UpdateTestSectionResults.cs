@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,6 +13,7 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
             migrationBuilder.AddColumn<bool>(
                 name: "Band1Passed",
                 table: "Submissions",
+                schema: "grading",
                 type: "boolean",
                 nullable: false,
                 defaultValue: false);
@@ -20,6 +21,7 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "TestSectionResults",
                 table: "Submissions",
+                schema: "grading",
                 type: "jsonb",
                 nullable: false,
                 defaultValue: "");
@@ -30,11 +32,13 @@ namespace PRN232.GradingEngine.Infrastructure.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Band1Passed",
-                table: "Submissions");
+                table: "Submissions",
+                schema: "grading");
 
             migrationBuilder.DropColumn(
                 name: "TestSectionResults",
-                table: "Submissions");
+                table: "Submissions",
+                schema: "grading");
         }
     }
 }
